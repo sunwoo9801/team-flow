@@ -23,7 +23,8 @@ out/
 
 # ─── Prisma generated (재생성 가능 → 커밋 불필요) ──
 backend/generated/
-backend/prisma/generated/
+backend/src/generated/
+
 
 # ─── IDE ────────────────────────────────────
 .vscode/settings.json
