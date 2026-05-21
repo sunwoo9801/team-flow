@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BoardService } from '../board/board.service';
+import { BoardGateway } from '../gateway/board.gateway';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { MoveCardDto } from './dto/move-card.dto';
@@ -10,17 +11,18 @@ export class CardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly boardService: BoardService,
+    private readonly gateway: BoardGateway,
   ) {}
 
   async create(userId: string, columnId: string, dto: CreateCardDto) {
     const col = await this.findColumnWithBoard(columnId);
-    await this.boardService.findOne(userId, col.boardId);
+    const board = await this.boardService.findOne(userId, col.boardId);
     const last = await this.prisma.card.findFirst({
       where: { columnId },
       orderBy: { position: 'desc' },
     });
     const position = last ? last.position + 1.0 : 1.0;
-    return this.prisma.card.create({
+    const card = await this.prisma.card.create({
       data: {
         title: dto.title,
         description: dto.description,
@@ -31,13 +33,19 @@ export class CardService {
       },
       include: { assignee: { select: { id: true, name: true, email: true } } },
     });
+    this.gateway.broadcastToBoard(board.id, {
+      type: 'card:created',
+      payload: card,
+      userId,
+    });
+    return card;
   }
 
   async update(userId: string, cardId: string, dto: UpdateCardDto) {
     const card = await this.findCard(cardId);
     const col = await this.findColumnWithBoard(card.columnId);
-    await this.boardService.findOne(userId, col.boardId);
-    return this.prisma.card.update({
+    const board = await this.boardService.findOne(userId, col.boardId);
+    const updated = await this.prisma.card.update({
       where: { id: cardId },
       data: {
         ...(dto.title !== undefined && { title: dto.title }),
@@ -49,23 +57,40 @@ export class CardService {
       },
       include: { assignee: { select: { id: true, name: true, email: true } } },
     });
+    this.gateway.broadcastToBoard(board.id, {
+      type: 'card:updated',
+      payload: updated,
+      userId,
+    });
+    return updated;
   }
 
   async move(userId: string, cardId: string, dto: MoveCardDto) {
     const card = await this.findCard(cardId);
     const col = await this.findColumnWithBoard(card.columnId);
-    await this.boardService.findOne(userId, col.boardId);
-    return this.prisma.card.update({
+    const board = await this.boardService.findOne(userId, col.boardId);
+    const moved = await this.prisma.card.update({
       where: { id: cardId },
       data: { columnId: dto.columnId, position: dto.position },
     });
+    this.gateway.broadcastToBoard(board.id, {
+      type: 'card:moved',
+      payload: moved,
+      userId,
+    });
+    return moved;
   }
 
   async remove(userId: string, cardId: string) {
     const card = await this.findCard(cardId);
     const col = await this.findColumnWithBoard(card.columnId);
-    await this.boardService.findOne(userId, col.boardId);
+    const board = await this.boardService.findOne(userId, col.boardId);
     await this.prisma.card.delete({ where: { id: cardId } });
+    this.gateway.broadcastToBoard(board.id, {
+      type: 'card:deleted',
+      payload: { cardId, columnId: card.columnId },
+      userId,
+    });
   }
 
   private async findCard(cardId: string) {

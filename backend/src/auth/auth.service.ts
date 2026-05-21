@@ -6,7 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthProvider } from '../../generated/prisma/client';
+import { AuthProvider } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -44,6 +44,7 @@ export class AuthService {
         provider: AuthProvider.local,
       },
     });
+
     return this.generateTokens(user.id, user.email);
   }
 
@@ -56,12 +57,14 @@ export class AuthService {
         '이메일 또는 비밀번호가 올바르지 않습니다.',
       );
     }
+
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) {
       throw new UnauthorizedException(
         '이메일 또는 비밀번호가 올바르지 않습니다.',
       );
     }
+
     return this.generateTokens(user.id, user.email);
   }
 
@@ -72,6 +75,7 @@ export class AuthService {
     let user = await this.prisma.user.findUnique({
       where: { email: googleUser.email },
     });
+
     if (!user) {
       user = await this.prisma.user.create({
         data: {
@@ -81,6 +85,7 @@ export class AuthService {
         },
       });
     }
+
     return this.generateTokens(user.id, user.email);
   }
 
@@ -89,10 +94,11 @@ export class AuthService {
     if (!user || !user.refreshToken) {
       throw new UnauthorizedException('인증 정보가 유효하지 않습니다.');
     }
+
     const match = await bcrypt.compare(rawRefreshToken, user.refreshToken);
-    if (!match) {
+    if (!match)
       throw new UnauthorizedException('Refresh token이 일치하지 않습니다.');
-    }
+
     return this.generateTokens(user.id, user.email);
   }
 
@@ -123,6 +129,7 @@ export class AuthService {
     email: string,
   ): Promise<TokenPair> {
     const payload: JwtPayload = { sub: userId, email };
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(payload, {
         secret: this.config.getOrThrow<string>('JWT_SECRET'),
@@ -133,11 +140,13 @@ export class AuthService {
         expiresIn: '7d',
       }),
     ]);
+
     const hashedRefresh = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({
       where: { id: userId },
       data: { refreshToken: hashedRefresh },
     });
+
     return { accessToken, refreshToken };
   }
 }

@@ -5,9 +5,9 @@
   "type": "commonjs",
   "scripts": {
     "build": "nest build",
-    "start": "node dist/main",
-    "start:dev": "nest start --watch",
-    "start:prod": "node dist/main",
+    "start": "node dist/main.js",
+    "start:dev": "tsx watch src/main.ts",
+    "start:prod": "node dist/main.js",
     "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -15,8 +15,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force",
-    "postbuild": "node scripts/postbuild.js"
+    "db:reset": "prisma migrate reset --force"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
@@ -25,8 +24,8 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
-    "@nestjs/websockets": "^11.0.0",
     "@nestjs/platform-socket.io": "^11.0.0",
+    "@nestjs/websockets": "^11.0.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "bcryptjs": "^2.4.3",
@@ -37,6 +36,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
+    "pg": "^8.21.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
     "socket.io": "^4.8.0"
@@ -51,6 +51,7 @@
     "@types/node": "^22.0.0",
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/passport-jwt": "^4.0.1",
+    "@types/pg": "^8.20.0",
     "eslint": "9.18.0",
     "prisma": "^7.8.0",
     "tsx": "^4.0.0",

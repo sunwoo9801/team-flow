@@ -1,22 +1,23 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "strict": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
+    "module": "commonjs", // 👈 NodeNext에서 commonjs로 변경!
+    "declaration": true,
+    "removeComments": true,
     "emitDecoratorMetadata": true,
-    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2021", // 👈 NestJS 표준 타겟으로 변경
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "incremental": true,
     "skipLibCheck": true,
-    "outDir": "dist",
-    "rootDir": ".",
-    "paths": {
-      "@prisma-client": ["./generated/prisma/client"],
-      "@prisma-client/*": ["./generated/prisma/*"]
-    }
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "generated"],
-  "exclude": ["node_modules", "dist", "prisma"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

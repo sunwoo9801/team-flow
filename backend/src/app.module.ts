@@ -5,15 +5,21 @@ import { AuthModule } from './auth/auth.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { BoardModule } from './board/board.module';
 import { KanbanModule } from './kanban/kanban.module';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    // ✅ isGlobal: true 가 반드시 있어야 하위 모듈에서 ConfigService 주입 가능
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     PrismaModule,
     AuthModule,
     WorkspaceModule,
     BoardModule,
     KanbanModule,
+    GatewayModule,
   ],
 })
 export class AppModule {}

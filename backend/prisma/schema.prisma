@@ -1,9 +1,8 @@
 generator client {
-  provider            = "prisma-client"
-  // ✅ src/ 안에 생성 → tsc 컴파일 대상에 포함 → import 정상 동작
-  // ✅ moduleFormat = "cjs" → NestJS(CommonJS) 환경 ESM 충돌 방지
-  output              = "../src/generated/prisma"
-  moduleFormat        = "cjs"
+  provider        = "prisma-client"
+  output          = "../node_modules/@prisma/client"
+
+  
 }
 
 datasource db {

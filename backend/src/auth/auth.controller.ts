@@ -8,8 +8,8 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  Inject,
 } from '@nestjs/common';
-// ✅ TS1272 수정: import type 사용 (값으로 사용하지 않는 타입은 반드시 import type)
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -28,7 +28,25 @@ const COOKIE_OPTIONS = {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  // ✅ @Inject() 명시적으로 추가
+  constructor(
+    @Inject(AuthService)
+    private readonly authService: AuthService,
+  ) {
+    console.log('AuthController created, authService:', !!this.authService);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    console.log('login called, authService:', !!this.authService);
+    const tokens = await this.authService.login(dto);
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return { accessToken: tokens.accessToken };
+  }
 
   @Post('register')
   async register(
@@ -40,22 +58,9 @@ export class AuthController {
     return { accessToken: tokens.accessToken };
   }
 
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(
-    @Body() dto: LoginDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const tokens = await this.authService.login(dto);
-    this.setRefreshCookie(res, tokens.refreshToken);
-    return { accessToken: tokens.accessToken };
-  }
-
   @Get('google')
   @UseGuards(GoogleAuthGuard)
-  googleAuth() {
-    // Passport가 Google 로그인 페이지로 리다이렉트
-  }
+  googleAuth() {}
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)

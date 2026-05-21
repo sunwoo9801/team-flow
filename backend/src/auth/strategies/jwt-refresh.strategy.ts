@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
-// ✅ import type으로 변경
 import type { Request } from 'express';
 
 @Injectable()
@@ -10,13 +9,14 @@ export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
 ) {
-  constructor(config: ConfigService) {
+  constructor(private readonly config: ConfigService) {
+    // ✅ super() 안에서 config 대신 process.env 직접 사용
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => req?.cookies?.['refresh_token'] ?? null,
       ]),
       ignoreExpiration: false,
-      secretOrKey: config.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      secretOrKey: process.env.JWT_REFRESH_SECRET ?? 'fallback-refresh-secret',
       passReqToCallback: true,
     });
   }

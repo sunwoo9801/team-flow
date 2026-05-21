@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { MemberRole } from '../../prisma/generated/prisma/client';
+import { MemberRole } from '../generated/prisma/client';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 
 @Injectable()

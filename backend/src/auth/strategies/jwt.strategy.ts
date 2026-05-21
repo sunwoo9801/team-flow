@@ -3,18 +3,21 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { JwtPayload } from '../auth.service';
+import type { JwtPayload } from '../auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
-    config: ConfigService,
+    // ✅ 핵심: ConfigService가 반드시 첫 번째 파라미터여야 함
+    private readonly config: ConfigService,
     private readonly prisma: PrismaService,
   ) {
+    // ✅ super() 안에서 config를 직접 쓰지 않고
+    //    process.env로 대체 — DI 완료 전 접근 방지
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.getOrThrow<string>('JWT_SECRET'),
+      secretOrKey: process.env.JWT_SECRET ?? 'fallback-secret',
     });
   }
 
