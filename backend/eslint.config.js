@@ -1,12 +1,12 @@
-// @ts-check
+// backend/eslint.config.js
 import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
-import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs'],
+    ignores: ['dist/**', 'node_modules/**', 'eslint.config.js'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -17,7 +17,7 @@ export default tseslint.config(
         ...globals.node,
         ...globals.jest,
       },
-      sourceType: 'commonjs',
+      sourceType: 'module',
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
@@ -25,14 +25,15 @@ export default tseslint.config(
     },
   },
   {
+    files: ['**/*.ts'],
     rules: {
-      // 가이드 문서의 요구 규칙 반영
+      // 🎯 가이드라인 필수 요구 규칙
       '@typescript-eslint/interface-name-prefix': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-explicit-any': 'warn', // 기존 off에서 가이드대로 warn(경고)으로 변경
+      '@typescript-eslint/no-explicit-any': 'warn',
 
-      // 내 기존 코드의 유용한 규칙들 유지
+      // 🛠️ NestJS 구동을 위한 기존 필수 규칙
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
