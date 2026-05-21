@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import {
   Injectable,
   OnModuleInit,
@@ -7,6 +6,11 @@ import {
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// 파일 최상단에서 즉시 로드 (import 시점에 실행)
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 @Injectable()
 export class PrismaService
@@ -16,10 +20,14 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
-    // Prisma 7: PrismaPg는 { connectionString } 객체를 받음
-    // Pool 객체 전달 방식은 v7에서 변경됨
+    const dbUrl = process.env.DATABASE_URL;
+    console.log(
+      '[PrismaService] DATABASE_URL:',
+      dbUrl ? '✅ loaded' : '❌ undefined',
+    );
+
     const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL!,
+      connectionString: dbUrl!,
     });
     super({ adapter });
   }
