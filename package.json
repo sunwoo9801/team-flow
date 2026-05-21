@@ -1,0 +1,32 @@
+{
+  "name": "team-flow",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:fe": "npm run dev --workspace=frontend",
+    "dev:be": "npm run start:dev --workspace=backend",
+    "lint:fe": "npm run lint --workspace=frontend",
+    "lint:be": "npm run lint --workspace=backend",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0"
+  },
+  "lint-staged": {
+    "frontend/src/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "backend/src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}

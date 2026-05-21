@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: team-flow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-teamflow}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-teamflow1234}
+      POSTGRES_DB: ${DB_NAME:-teamflow}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-teamflow}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: team-flow-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
