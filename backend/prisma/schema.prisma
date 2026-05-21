@@ -1,16 +1,161 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// Prisma 7.8 — provider: "prisma-client" (prisma-client-js 제거됨)
+// output 필드 필수 (node_modules 자동 생성 폐지)
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "./generated/prisma"
 }
 
+// ──────────────────────────────────────────────
+// datasource의 url/directUrl 필드는 Prisma 7에서 deprecated.
+// DB 연결 URL은 prisma.config.ts의 datasource.url 로 이동.
+// 이 블록은 provider만 선언.
+// ──────────────────────────────────────────────
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// ─────────────────────────────────────────────
-// STEP 2에서 모델을 추가합니다.
-// User, Workspace, Channel, Message 등
-// ─────────────────────────────────────────────
+// ──────────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────────
+
+enum AuthProvider {
+  local
+  google
+}
+
+enum MemberRole {
+  admin
+  member
+}
+
+// ──────────────────────────────────────────────
+// Models
+// ──────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  /// local: bcrypt 해시 비밀번호 / google: null
+  password     String?
+  provider     AuthProvider @default(local)
+  /// JWT Refresh Token (bcrypt 해시 저장)
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  ownedWorkspaces   Workspace[]       @relation("WorkspaceOwner")
+  workspaceMemberships WorkspaceMember[]
+  assignedCards     Card[]            @relation("CardAssignee")
+
+  @@index([email])
+  @@map("users")
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  owner   User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members WorkspaceMember[]
+  boards  Board[]
+  inviteTokens InviteToken[]
+
+  @@index([ownerId])
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  workspaceId String
+  userId      String
+  role        MemberRole @default(member)
+  joinedAt    DateTime   @default(now())
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([workspaceId, userId])
+  @@index([userId])
+  @@map("workspace_members")
+}
+
+model Board {
+  id          String   @id @default(cuid())
+  title       String
+  workspaceId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  columns   Column[]
+
+  @@index([workspaceId])
+  @@map("boards")
+}
+
+model Column {
+  id      String @id @default(cuid())
+  title   String
+  /// Lexicographic(사전순) 정렬용 Float 값.
+  /// 새 컬럼 삽입 시 앞뒤 position의 중간값을 사용 (예: 1.0 / 2.0 사이 → 1.5).
+  /// 이 방식은 재정렬 없이 O(1) 삽입을 가능하게 하며,
+  /// 정밀도 소진 시 전체 재정렬(rebalance)을 수행합니다.
+  position Float
+  boardId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards Card[]
+
+  @@index([boardId, position])
+  @@map("columns")
+}
+
+model Card {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  /// Column 내 카드 순서. Column.position과 동일한 Lexicographic 정렬 방식.
+  /// 카드 이동 시 대상 위치의 앞뒤 카드 position 중간값으로 업데이트.
+  position    Float
+  dueDate     DateTime?
+  assigneeId  String?
+  columnId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  assignee User?  @relation("CardAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  @@index([columnId, position])
+  @@index([assigneeId])
+  @@map("cards")
+}
+
+model InviteToken {
+  id          String    @id @default(cuid())
+  /// URL-safe random token (crypto.randomBytes 기반)
+  token       String    @unique
+  workspaceId String
+  expiresAt   DateTime
+  /// null이면 미사용, 값이 있으면 사용 완료
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([workspaceId])
+  @@map("invite_tokens")
+}
