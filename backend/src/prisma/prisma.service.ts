@@ -1,7 +1,4 @@
-// Prisma 7: import 경로는 output 설정 기준
-// schema.prisma output = "./generated/prisma"
-// 이 파일 위치: src/prisma/ → 상대경로: ../../prisma/generated/prisma/client
-import { PrismaClient } from '../../prisma/generated/prisma/client';
+import { PrismaClient } from '../../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import {
   Injectable,
@@ -18,11 +15,9 @@ export class PrismaService
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
-    // Prisma 7: driver adapter 필수 — new PrismaClient() 단독 사용 불가
     const adapter = new PrismaPg({
       connectionString: process.env.DATABASE_URL,
     });
-
     super({ adapter });
   }
 

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PrismaClient } from './generated/prisma/client';
+import { PrismaClient } from '../generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 async function checkConnection() {
@@ -9,11 +9,9 @@ async function checkConnection() {
   const prisma = new PrismaClient({ adapter });
 
   try {
-    // 간단한 raw 쿼리로 연결 확인
     const result = await prisma.$queryRaw<[{ now: Date }]>`SELECT NOW()`;
     console.log('✅ DB 연결 성공:', result[0].now);
 
-    // 각 테이블 카운트 확인
     const counts = await Promise.all([
       prisma.user.count(),
       prisma.workspace.count(),

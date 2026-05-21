@@ -1,0 +1,4 @@
+// C:\team-flow\.vscode/settings.json
+{
+  "eslint.workingDirectories": [{ "pattern": "./backend/" }, { "pattern": "./frontend/" }]
+}

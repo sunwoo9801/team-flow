@@ -1,25 +1,22 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
+    "module": "CommonJS",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "strict": true,
     "esModuleInterop": true,
-    "isolatedModules": true,
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2023",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "isolatedModules": true,
     "skipLibCheck": true,
-    "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "outDir": "dist",
+    "rootDir": ".",
+    "paths": {
+      "@prisma-client": ["./generated/prisma/client"],
+      "@prisma-client/*": ["./generated/prisma/*"]
+    }
+  },
+  "include": ["src", "generated"],
+  "exclude": ["node_modules", "dist", "prisma"]
 }
