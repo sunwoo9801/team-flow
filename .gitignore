@@ -25,7 +25,7 @@ out/
 
 # ─── Prisma ─────────────────────────────────
 backend/prisma/migrations/*.sql.bak
-
+backend/prisma/generated/
 # ─── IDE ────────────────────────────────────
 .vscode/settings.json
 .idea/
@@ -40,4 +40,4 @@ logs/
 
 # ─── Coverage ───────────────────────────────
 coverage/
-.nyc_output/
+.nyc_output/"backend/prisma/generated/" 
