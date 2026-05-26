@@ -2,14 +2,20 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { MemberRole } from '../generated/prisma/client';
+import { MemberRole } from '@prisma/client';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 
 @Injectable()
 export class WorkspaceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService,
+  ) {
+    console.log('WorkspaceService prisma:', !!this.prisma);
+  }
 
   async create(userId: string, dto: CreateWorkspaceDto) {
     return this.prisma.workspace.create({

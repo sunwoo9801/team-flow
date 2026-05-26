@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "module": "commonjs", // 👈 NodeNext에서 commonjs로 변경!
+    "module": "commonjs",
+    "target": "es2021",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "es2021", // 👈 NestJS 표준 타겟으로 변경
+    "esModuleInterop": true,
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",

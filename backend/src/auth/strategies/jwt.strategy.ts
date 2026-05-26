@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -9,7 +9,10 @@ import type { JwtPayload } from '../auth.service';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     // ✅ 핵심: ConfigService가 반드시 첫 번째 파라미터여야 함
+    @Inject(ConfigService)
     private readonly config: ConfigService,
+
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
   ) {
     // ✅ super() 안에서 config를 직접 쓰지 않고

@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Inject,
 } from '@nestjs/common';
 import { WorkspaceService } from './workspace.service';
 import { InviteService } from './invite.service';
@@ -17,7 +18,10 @@ import { CreateWorkspaceDto } from './dto/create-workspace.dto';
 @Controller('workspaces')
 export class WorkspaceController {
   constructor(
+    @Inject(WorkspaceService)
     private readonly workspaceService: WorkspaceService,
+
+    @Inject(InviteService)
     private readonly inviteService: InviteService,
   ) {}
 

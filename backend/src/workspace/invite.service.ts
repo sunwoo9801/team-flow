@@ -5,7 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { MemberRole } from '../generated/prisma/client';
+import { MemberRole } from '@prisma/client';
 import { randomBytes } from 'crypto';
 
 @Injectable()
