@@ -4,13 +4,19 @@ import { BoardService } from '../board/board.service';
 import { CreateColumnDto } from './dto/create-column.dto';
 import { UpdateColumnDto } from './dto/update-column.dto';
 import { MoveColumnDto } from './dto/move-column.dto';
+import { Inject } from '@nestjs/common';
 
 @Injectable()
 export class ColumnService {
   constructor(
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
+
+    @Inject(BoardService)
     private readonly boardService: BoardService,
-  ) {}
+  ) {
+    console.log('ColumnService prisma:', !!this.prisma);
+  }
 
   async create(userId: string, boardId: string, dto: CreateColumnDto) {
     await this.boardService.findOne(userId, boardId);

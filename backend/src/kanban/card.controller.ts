@@ -13,11 +13,15 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { MoveCardDto } from './dto/move-card.dto';
+import { Inject } from '@nestjs/common';
 
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class CardController {
-  constructor(private readonly cardService: CardService) {}
+  constructor(
+    @Inject(CardService)
+    private readonly cardService: CardService,
+  ) {}
 
   @Post('columns/:columnId/cards')
   create(

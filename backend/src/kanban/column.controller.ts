@@ -13,11 +13,17 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateColumnDto } from './dto/create-column.dto';
 import { UpdateColumnDto } from './dto/update-column.dto';
 import { MoveColumnDto } from './dto/move-column.dto';
+import { Inject } from '@nestjs/common';
 
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class ColumnController {
-  constructor(private readonly columnService: ColumnService) {}
+  constructor(
+    @Inject(ColumnService)
+    private readonly columnService: ColumnService,
+  ) {
+    console.log('columnService:', !!this.columnService);
+  }
 
   @Post('boards/:boardId/columns')
   create(

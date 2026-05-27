@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Inject,
 } from '@nestjs/common';
 import { BoardService } from './board.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -17,7 +18,12 @@ import { UpdateBoardDto } from './dto/update-board.dto';
 @UseGuards(JwtAuthGuard)
 @Controller()
 export class BoardController {
-  constructor(private readonly boardService: BoardService) {}
+  constructor(
+    @Inject(BoardService)
+    private readonly boardService: BoardService,
+  ) {
+    console.log('boardService:', !!this.boardService);
+  }
 
   @Post('workspaces/:workspaceId/boards')
   create(

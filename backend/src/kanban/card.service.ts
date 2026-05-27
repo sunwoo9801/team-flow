@@ -5,14 +5,24 @@ import { BoardGateway } from '../gateway/board.gateway';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { MoveCardDto } from './dto/move-card.dto';
+import { Inject } from '@nestjs/common';
 
 @Injectable()
 export class CardService {
   constructor(
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
+
+    @Inject(BoardService)
     private readonly boardService: BoardService,
+
+    @Inject(BoardGateway)
     private readonly gateway: BoardGateway,
-  ) {}
+  ) {
+    console.log('CardService prisma:', !!this.prisma);
+    console.log('CardService boardService:', !!this.boardService);
+    console.log('CardService gateway:', !!this.gateway);
+  }
 
   async create(userId: string, columnId: string, dto: CreateCardDto) {
     const col = await this.findColumnWithBoard(columnId);

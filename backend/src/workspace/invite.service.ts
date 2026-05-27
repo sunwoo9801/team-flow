@@ -7,10 +7,16 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { MemberRole } from '@prisma/client';
 import { randomBytes } from 'crypto';
+import { Inject } from '@nestjs/common';
 
 @Injectable()
 export class InviteService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(PrismaService)
+    private readonly prisma: PrismaService,
+  ) {
+    console.log('InviteService prisma:', !!this.prisma);
+  }
 
   async createInviteLink(workspaceId: string): Promise<string> {
     const token = randomBytes(24).toString('hex');

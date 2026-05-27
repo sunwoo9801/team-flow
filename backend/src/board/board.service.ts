@@ -3,13 +3,20 @@ import { PrismaService } from '../prisma/prisma.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
+import { Inject } from '@nestjs/common';
 
 @Injectable()
 export class BoardService {
   constructor(
+    @Inject(PrismaService)
     private readonly prisma: PrismaService,
+
+    @Inject(WorkspaceService)
     private readonly workspaceService: WorkspaceService,
-  ) {}
+  ) {
+    console.log('BoardService prisma:', !!this.prisma);
+    console.log('BoardService workspaceService:', !!this.workspaceService);
+  }
 
   async create(userId: string, workspaceId: string, dto: CreateBoardDto) {
     await this.workspaceService.assertMember(workspaceId, userId);
