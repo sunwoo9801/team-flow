@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import type { BoardDetail, Card } from './useBoard';
@@ -138,4 +138,27 @@ export function useBoardSocket(boardId: string) {
   }, [boardId, applyEvent]);
 
   return socketRef;
+}
+
+export default function useSocket(): Socket | null {
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    const token = sessionStorage.getItem('access_token');
+    if (!token) return;
+
+    const s = io(`${SOCKET_URL}/boards`, {
+      auth: { token },
+      transports: ['websocket'],
+    });
+
+    setSocket(s);
+
+    return () => {
+      s.disconnect();
+      setSocket(null);
+    };
+  }, []);
+
+  return socket;
 }

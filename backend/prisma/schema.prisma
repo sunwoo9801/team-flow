@@ -23,6 +23,8 @@ model User {
   @@index([email])
   @@map("users")
   cardActivities CardActivity[]
+  receivedNotifications Notification[] @relation("ReceivedNotifications")
+sentNotifications     Notification[] @relation("SentNotifications")
 }
 
 model Workspace {
@@ -100,6 +102,7 @@ model Card {
   @@map("cards")
 
   activities CardActivity[]
+  notifications Notification[]
 }
 
 model InviteToken {
@@ -154,4 +157,29 @@ model CardActivity {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([cardId, createdAt(sort: Desc)])
+}
+
+enum NotificationType {
+  MENTION
+  CARD_ASSIGNED
+  COMMENT_ADDED
+  CARD_DUE_SOON
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  userId     String                          // 수신자
+  actorId    String                          // 발신자
+  type       NotificationType
+  message    String
+  link       String?                         // 클릭 시 이동할 경로
+  isRead     Boolean          @default(false)
+  cardId     String?
+  createdAt  DateTime         @default(now())
+
+  user  User  @relation("ReceivedNotifications", fields: [userId],  references: [id], onDelete: Cascade)
+  actor User  @relation("SentNotifications",     fields: [actorId], references: [id], onDelete: Cascade)
+  card  Card? @relation(fields: [cardId], references: [id],         onDelete: SetNull)
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
 }

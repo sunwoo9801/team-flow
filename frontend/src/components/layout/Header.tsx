@@ -1,6 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useWorkspaceStore } from '../../store/workspace.store';
 import { useBoard } from '../../hooks/useBoard';
+import { useAuthStore } from '../../store/auth.store';
+import { NotificationBell } from '../notification/NotificationBell';
+
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -12,6 +15,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { workspaces } = useWorkspaceStore();
   const activeWs = workspaces.find(w => w.id === workspaceId);
   const { data: board } = useBoard(boardId ?? '');
+  const { user, clearAuth } = useAuthStore();
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate('/login');
+  };
 
   return (
     <header
@@ -68,7 +77,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
       </nav>
 
       {/* 우측 액션 */}
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         {workspaceId && !boardId && (
           <button
             onClick={() => navigate(`/workspace/${workspaceId}/board/new`)}
@@ -88,6 +97,22 @@ export default function Header({ onMenuClick }: HeaderProps) {
             새 보드
           </button>
         )}
+
+        <NotificationBell />
+
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-medium text-indigo-700">
+            {user?.name?.slice(0, 2).toUpperCase() ?? 'ME'}
+          </div>
+          <span className="text-sm text-zinc-700 hidden sm:block">{user?.name}</span>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="text-sm text-zinc-500 hover:text-zinc-800 transition-colors"
+        >
+          로그아웃
+        </button>
       </div>
     </header>
   );

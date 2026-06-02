@@ -25,6 +25,10 @@ export interface BoardEvent {
   userId: string;
 }
 
+interface AuthSocket extends Socket {
+  user?: { sub: string; email: string };
+}
+
 @WebSocketGateway({
   cors: {
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
@@ -36,20 +40,28 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
-  private userSocketMap = new Map<string, string[]>(); // userId → socketId[]
+  // userId → Set<socketId> (한 유저가 여러 탭 오픈 가능)
+  private userSockets = new Map<string, Set<string>>();
 
-  handleConnection(client: Socket) {
-    console.log(`WS connected: ${client.id}`);
+  handleConnection(client: AuthSocket) {
+    const userId = client.user?.sub;
+    if (!userId) return;
+
+    if (!this.userSockets.has(userId)) {
+      this.userSockets.set(userId, new Set());
+    }
+    this.userSockets.get(userId)!.add(client.id);
+    console.log(`WS connected: ${client.id} (user: ${userId})`);
   }
 
-  handleDisconnect(client: Socket) {
-    const userId = (client.data as { userId?: string }).userId;
+  handleDisconnect(client: AuthSocket) {
+    const userId = client.user?.sub;
     if (userId) {
-      const sockets = this.userSocketMap.get(userId) ?? [];
-      this.userSocketMap.set(
-        userId,
-        sockets.filter((id) => id !== client.id),
-      );
+      const sockets = this.userSockets.get(userId);
+      if (sockets) {
+        sockets.delete(client.id);
+        if (sockets.size === 0) this.userSockets.delete(userId);
+      }
     }
     console.log(`WS disconnected: ${client.id}`);
   }
@@ -57,27 +69,24 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('board:join')
   handleJoin(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthSocket,
     @MessageBody() data: { boardId: string },
   ) {
     client.join(`board:${data.boardId}`);
-    const userId = (client.data as { userId: string }).userId;
-    const existing = this.userSocketMap.get(userId) ?? [];
-    this.userSocketMap.set(userId, [...existing, client.id]);
     return { event: 'board:joined', data: { boardId: data.boardId } };
   }
 
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('board:leave')
   handleLeave(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthSocket,
     @MessageBody() data: { boardId: string },
   ) {
     client.leave(`board:${data.boardId}`);
     return { event: 'board:left', data: { boardId: data.boardId } };
   }
 
-  // 서버 → 클라이언트 브로드캐스트 (서비스에서 호출)
+  // 보드 전체 브로드캐스트 (서비스에서 호출)
   broadcastToBoard(
     boardId: string,
     event: BoardEvent,
@@ -90,6 +99,15 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .emit('board:update', event);
     } else {
       this.server.to(`board:${boardId}`).emit('board:update', event);
+    }
+  }
+
+  // 특정 유저에게만 push (알림)
+  emitToUser(userId: string, event: string, data: unknown) {
+    const sockets = this.userSockets.get(userId);
+    if (!sockets) return;
+    for (const socketId of sockets) {
+      this.server.to(socketId).emit(event, data);
     }
   }
 }

@@ -6,11 +6,7 @@ export interface CreateActivityDto {
   cardId: string;
   userId: string;
   actionType: CardActionType;
-  metadata?: {
-    before?: unknown;
-    after?: unknown;
-    extra?: unknown;
-  };
+  metadata?: Record<string, unknown>;
 }
 
 export interface ActivityCursorDto {
