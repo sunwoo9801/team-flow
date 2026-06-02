@@ -1,33 +1,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @import 'tailwindcss';
+
+/* ── 커스텀 브레이크포인트 ──────────────────────────────────── */
+@theme {
+  --breakpoint-3xl: 100rem; /* 1600px: 풀스크린 전용 레이아웃 */
+}
+
+/* ── 유동 그리드 유틸리티 ───────────────────────────────────── */
+@layer utilities {
+  /* 워크스페이스 카드 그리드: 260px 최소, 자동 확장 */
+  .grid-fluid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  /* 보드 카드 그리드: 240px 최소 */
+  .grid-fluid-sm {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.75rem;
+  }
+}
 
 /* ── 디자인 토큰 ───────────────────────────────────────────── */
 :root {
   --sidebar-w: 240px;
   --header-h: 56px;
-
-  /* Surface */
-  --bg: #f4f4f5;
   --surface: #ffffff;
-  --surface-2: #f9f9fa;
   --border: #e4e4e7;
-  --border-focus: #3b82f6;
-
-  /* Text */
   --text-1: #18181b;
   --text-2: #52525b;
   --text-3: #a1a1aa;
-
-  /* Brand */
   --brand: #2563eb;
-  --brand-h: #1d4ed8;
-  --brand-a: #1e40af;
-  --brand-fg: #ffffff;
-
-  /* Status */
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
 }
 
 @layer base {
@@ -41,13 +46,11 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-
   body {
-    background: var(--bg);
+    background: #f4f4f5;
     color: var(--text-1);
   }
 
-  /* 커스텀 스크롤바 */
   ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
@@ -63,7 +66,6 @@
     background: #a1a1aa;
   }
 
-  /* 포커스 링 */
   :focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
@@ -74,7 +76,6 @@
   }
 }
 
-/* ── 유틸리티 애니메이션 ────────────────────────────────────── */
 @keyframes fade-in {
   from {
     opacity: 0;

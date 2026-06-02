@@ -6,9 +6,10 @@ import { CardService } from './card.service';
 import { BoardModule } from '../board/board.module';
 import { WorkspaceModule } from '../workspace/workspace.module';
 import { GatewayModule } from '../gateway/gateway.module';
+import { ActivityModule } from '../activity/activity.module';
 
 @Module({
-  imports: [BoardModule, WorkspaceModule, GatewayModule],
+  imports: [BoardModule, WorkspaceModule, GatewayModule, ActivityModule],
   controllers: [ColumnController, CardController],
   providers: [ColumnService, CardService],
   exports: [ColumnService, CardService],

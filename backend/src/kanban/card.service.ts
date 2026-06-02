@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BoardService } from '../board/board.service';
 import { BoardGateway } from '../gateway/board.gateway';
+import { ActivityService } from '../activity/activity.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { MoveCardDto } from './dto/move-card.dto';
@@ -18,11 +19,9 @@ export class CardService {
 
     @Inject(BoardGateway)
     private readonly gateway: BoardGateway,
-  ) {
-    console.log('CardService prisma:', !!this.prisma);
-    console.log('CardService boardService:', !!this.boardService);
-    console.log('CardService gateway:', !!this.gateway);
-  }
+
+    private readonly activityService: ActivityService, // ← 추가
+  ) {}
 
   async create(userId: string, columnId: string, dto: CreateCardDto) {
     const col = await this.findColumnWithBoard(columnId);
@@ -43,6 +42,10 @@ export class CardService {
       },
       include: { assignee: { select: { id: true, name: true, email: true } } },
     });
+
+    // ← 추가
+    await this.activityService.logCardCreated(card.id, userId, card.title);
+
     this.gateway.broadcastToBoard(board.id, {
       type: 'card:created',
       payload: card,
@@ -51,10 +54,32 @@ export class CardService {
     return card;
   }
 
+  async findAll(columnId: string) {
+    return this.prisma.card.findMany({
+      where: { columnId },
+      orderBy: { position: 'asc' },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+      },
+    });
+  }
+
+  async findOne(cardId: string) {
+    const card = await this.prisma.card.findUnique({
+      where: { id: cardId },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+      },
+    });
+    if (!card) throw new NotFoundException('카드를 찾을 수 없습니다.');
+    return card;
+  }
+
   async update(userId: string, cardId: string, dto: UpdateCardDto) {
-    const card = await this.findCard(cardId);
-    const col = await this.findColumnWithBoard(card.columnId);
+    const existing = await this.findCard(cardId); // ← before 값 추적용
+    const col = await this.findColumnWithBoard(existing.columnId);
     const board = await this.boardService.findOne(userId, col.boardId);
+
     const updated = await this.prisma.card.update({
       where: { id: cardId },
       data: {
@@ -67,6 +92,29 @@ export class CardService {
       },
       include: { assignee: { select: { id: true, name: true, email: true } } },
     });
+
+    // ← 추가: 변경된 필드만 activity 기록
+    const trackableFields = [
+      'title',
+      'description',
+      'assigneeId',
+      'dueDate',
+    ] as const;
+    for (const field of trackableFields) {
+      if (
+        dto[field] !== undefined &&
+        dto[field] !== (existing as Record<string, unknown>)[field]
+      ) {
+        await this.activityService.logCardUpdated(
+          cardId,
+          userId,
+          field,
+          (existing as Record<string, unknown>)[field],
+          dto[field],
+        );
+      }
+    }
+
     this.gateway.broadcastToBoard(board.id, {
       type: 'card:updated',
       payload: updated,
@@ -79,10 +127,23 @@ export class CardService {
     const card = await this.findCard(cardId);
     const col = await this.findColumnWithBoard(card.columnId);
     const board = await this.boardService.findOne(userId, col.boardId);
+    const fromColumnId = card.columnId; // ← 추가
+
     const moved = await this.prisma.card.update({
       where: { id: cardId },
       data: { columnId: dto.columnId, position: dto.position },
     });
+
+    // ← 추가: 컬럼 이동 시만 기록
+    if (fromColumnId !== dto.columnId) {
+      await this.activityService.logCardMoved(
+        cardId,
+        userId,
+        fromColumnId,
+        dto.columnId,
+      );
+    }
+
     this.gateway.broadcastToBoard(board.id, {
       type: 'card:moved',
       payload: moved,
@@ -95,6 +156,15 @@ export class CardService {
     const card = await this.findCard(cardId);
     const col = await this.findColumnWithBoard(card.columnId);
     const board = await this.boardService.findOne(userId, col.boardId);
+
+    // ← 추가
+    await this.activityService.create({
+      cardId,
+      userId,
+      actionType: 'CARD_DELETED' as never,
+      metadata: { extra: { title: card.title } },
+    });
+
     await this.prisma.card.delete({ where: { id: cardId } });
     this.gateway.broadcastToBoard(board.id, {
       type: 'card:deleted',

@@ -26,7 +26,6 @@ import { useBoardSocket } from '../../hooks/useSocket';
 import { useDnd } from '../../hooks/useDnd';
 import type { Column, Card } from '../../hooks/useBoard';
 
-/* ── 컬럼 색상 도트 ── */
 const COLUMN_COLORS = [
   'bg-blue-400',
   'bg-violet-400',
@@ -36,14 +35,61 @@ const COLUMN_COLORS = [
   'bg-cyan-400',
   'bg-indigo-400',
 ];
+const COLUMN_SOFT = [
+  'bg-blue-50',
+  'bg-violet-50',
+  'bg-emerald-50',
+  'bg-amber-50',
+  'bg-rose-50',
+  'bg-cyan-50',
+  'bg-indigo-50',
+];
+
+/* ── 보드 통계 (서브헤더용) ── */
+function BoardStats({ columns }: { columns: Column[] }) {
+  const totalCards = columns.reduce((s, c) => s + c.cards.length, 0);
+  const overdueCards = columns
+    .flatMap(c => c.cards)
+    .filter(c => c.dueDate && new Date(c.dueDate) < new Date()).length;
+  const assignedCards = columns.flatMap(c => c.cards).filter(c => c.assigneeId).length;
+
+  const items = [
+    { label: '전체 카드', value: totalCards, color: 'text-zinc-700' },
+    { label: '담당자 배정', value: assignedCards, color: 'text-blue-600' },
+    ...(overdueCards > 0
+      ? [
+          {
+            label: '기한 초과',
+            value: overdueCards,
+            color: 'text-red-600',
+          },
+        ]
+      : []),
+    { label: '컬럼', value: columns.length, color: 'text-zinc-500' },
+  ];
+
+  return (
+    <div className="flex items-center gap-5">
+      {items.map(({ label, value, color }) => (
+        <div key={label} className="flex items-center gap-1.5">
+          <span className={`text-sm font-bold tabular-nums ${color}`}>{value}</span>
+          <span className="text-xs text-zinc-400">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /* ── SortableCard ── */
-interface SortableCardProps {
+function SortableCard({
+  card,
+  columnId,
+  onDelete,
+}: {
   card: Card;
   columnId: string;
   onDelete: () => void;
-}
-function SortableCard({ card, columnId, onDelete }: SortableCardProps) {
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { type: 'card', columnId },
@@ -58,8 +104,8 @@ function SortableCard({ card, columnId, onDelete }: SortableCardProps) {
       {...attributes}
       {...listeners}
       className={`
-        group relative bg-white border rounded-xl p-3.5
-        cursor-grab active:cursor-grabbing select-none
+        group relative bg-white border rounded-xl p-3.5 select-none
+        cursor-grab active:cursor-grabbing
         transition-all duration-150
         ${
           isDragging
@@ -67,15 +113,14 @@ function SortableCard({ card, columnId, onDelete }: SortableCardProps) {
             : 'border-zinc-200 shadow-sm hover:shadow-md hover:border-zinc-300'
         }
       `}
-      aria-label={`카드: ${card.title}`}
     >
       {/* 삭제 버튼 */}
       <button
         onPointerDown={e => e.stopPropagation()}
         onClick={onDelete}
         aria-label="카드 삭제"
-        className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100
-                   w-5 h-5 flex items-center justify-center rounded-md
+        className="absolute top-2.5 right-2.5 w-5 h-5 flex items-center justify-center
+                   rounded-md opacity-0 group-hover:opacity-100
                    text-zinc-400 hover:text-red-500 hover:bg-red-50
                    transition-all duration-150"
       >
@@ -90,18 +135,15 @@ function SortableCard({ card, columnId, onDelete }: SortableCardProps) {
         </svg>
       </button>
 
-      {/* 카드 제목 */}
       <p className="text-sm font-medium text-zinc-800 leading-snug pr-5">{card.title}</p>
 
-      {/* 메타 정보 */}
       {(card.assignee || card.dueDate) && (
         <div className="flex items-center justify-between mt-3 gap-2">
           {card.dueDate && (
             <span
-              className={`flex items-center gap-1 text-[11px] font-medium px-2 py-0.5
-                              rounded-full ${
-                                overdue ? 'bg-red-50 text-red-600' : 'bg-zinc-100 text-zinc-500'
-                              }`}
+              className={`flex items-center gap-1 text-[11px] font-medium
+                              px-2 py-0.5 rounded-full
+                              ${overdue ? 'bg-red-50 text-red-600' : 'bg-zinc-100 text-zinc-500'}`}
             >
               <svg
                 className="w-3 h-3"
@@ -134,10 +176,25 @@ function SortableCard({ card, columnId, onDelete }: SortableCardProps) {
   );
 }
 
-/* ── SortableColumn ── */
-interface SortableColumnProps {
+/* ── SortableColumn ──
+   컬럼 너비: 기본 280px / xl: 296px / 2xl: 312px / 3xl: 328px
+*/
+function SortableColumn({
+  col,
+  colorClass,
+  softClass,
+  onDeleteColumn,
+  onDeleteCard,
+  addingCard,
+  newCardTitle,
+  onNewCardTitleChange,
+  onStartAddCard,
+  onCancelAddCard,
+  onAddCard,
+}: {
   col: Column;
   colorClass: string;
+  softClass: string;
   onDeleteColumn: () => void;
   onDeleteCard: (id: string) => void;
   addingCard: boolean;
@@ -146,9 +203,7 @@ interface SortableColumnProps {
   onStartAddCard: () => void;
   onCancelAddCard: () => void;
   onAddCard: () => void;
-}
-function SortableColumn(props: SortableColumnProps) {
-  const { col, colorClass } = props;
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: col.id,
     data: { type: 'column' },
@@ -157,31 +212,44 @@ function SortableColumn(props: SortableColumnProps) {
   const cardIds = useMemo(() => col.cards.map(c => c.id), [col.cards]);
 
   return (
+    /* 너비: 반응형으로 점진적 확장 */
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`w-72 shrink-0 flex flex-col transition-opacity duration-150
-                  ${isDragging ? 'opacity-50' : 'opacity-100'}`}
+      className={`
+        w-[280px] xl:w-[296px] 2xl:w-[312px] 3xl:w-[328px]
+        shrink-0 flex flex-col
+        transition-opacity duration-150
+        ${isDragging ? 'opacity-50' : 'opacity-100'}
+      `}
     >
       {/* 컬럼 헤더 */}
       <div
         {...attributes}
         {...listeners}
-        className="flex items-center gap-2.5 mb-2.5 px-1
-                   cursor-grab active:cursor-grabbing"
+        className="flex items-center gap-2.5 mb-2.5 px-1 cursor-grab active:cursor-grabbing"
       >
         <div className={`w-2 h-2 rounded-full ${colorClass} shrink-0`} />
         <h2 className="flex-1 text-sm font-semibold text-zinc-700 select-none truncate">
           {col.title}
         </h2>
-        <span className="text-xs font-semibold text-zinc-400 tabular-nums">{col.cards.length}</span>
+        {/* 카드 수 배지 */}
+        <span
+          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full
+                          ${softClass} ${colorClass
+                            .replace('bg-', 'text-')
+                            .replace('-400', '-700')} tabular-nums`}
+        >
+          {col.cards.length}
+        </span>
         <button
           onPointerDown={e => e.stopPropagation()}
-          onClick={props.onDeleteColumn}
+          onClick={onDeleteColumn}
           aria-label="컬럼 삭제"
-          className="opacity-0 group-hover/col:opacity-100 w-5 h-5 flex items-center
-                     justify-center rounded text-zinc-400 hover:text-red-500
-                     hover:bg-red-50 transition-all duration-150"
+          className="w-5 h-5 flex items-center justify-center rounded
+                     text-zinc-400 hover:text-red-500 hover:bg-red-50
+                     transition-all duration-150 opacity-0
+                     group-hover/col:opacity-100"
         >
           <svg
             className="w-3 h-3"
@@ -195,10 +263,10 @@ function SortableColumn(props: SortableColumnProps) {
         </button>
       </div>
 
-      {/* 카드 리스트 */}
+      {/* 카드 리스트 영역 */}
       <div
-        className="flex flex-col flex-1 bg-zinc-100/80 rounded-2xl p-2.5 gap-2
-                      overflow-y-auto min-h-[80px] group/col"
+        className={`flex flex-col flex-1 ${softClass} rounded-2xl p-2.5 gap-2
+                       overflow-y-auto min-h-[80px] border border-zinc-200/60 group/col`}
       >
         <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
           {col.cards.map(card => (
@@ -206,25 +274,25 @@ function SortableColumn(props: SortableColumnProps) {
               key={card.id}
               card={card}
               columnId={col.id}
-              onDelete={() => props.onDeleteCard(card.id)}
+              onDelete={() => onDeleteCard(card.id)}
             />
           ))}
         </SortableContext>
 
         {/* 인라인 카드 추가 */}
-        {props.addingCard ? (
+        {addingCard && (
           <div className="bg-white border border-zinc-200 rounded-xl p-3 shadow-sm">
             <textarea
               autoFocus
               rows={2}
-              value={props.newCardTitle}
-              onChange={e => props.onNewCardTitleChange(e.target.value)}
+              value={newCardTitle}
+              onChange={e => onNewCardTitleChange(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  props.onAddCard();
+                  onAddCard();
                 }
-                if (e.key === 'Escape') props.onCancelAddCard();
+                if (e.key === 'Escape') onCancelAddCard();
               }}
               placeholder="카드 이름 입력 후 Enter"
               className="w-full text-sm text-zinc-900 placeholder:text-zinc-400 resize-none
@@ -233,7 +301,7 @@ function SortableColumn(props: SortableColumnProps) {
             <div className="flex gap-2 mt-2.5">
               <button
                 onPointerDown={e => e.stopPropagation()}
-                onClick={props.onAddCard}
+                onClick={onAddCard}
                 className="flex-1 h-7 bg-blue-600 hover:bg-blue-700 text-white text-xs
                            font-semibold rounded-lg transition-colors duration-150"
               >
@@ -241,23 +309,25 @@ function SortableColumn(props: SortableColumnProps) {
               </button>
               <button
                 onPointerDown={e => e.stopPropagation()}
-                onClick={props.onCancelAddCard}
-                className="h-7 px-3 text-xs font-medium text-zinc-500 hover:text-zinc-800
-                           hover:bg-zinc-200 rounded-lg transition-colors duration-150"
+                onClick={onCancelAddCard}
+                className="h-7 px-3 text-xs font-medium text-zinc-500
+                           hover:text-zinc-800 hover:bg-zinc-200
+                           rounded-lg transition-colors duration-150"
               >
                 취소
               </button>
             </div>
           </div>
-        ) : (
-          /* 카드 추가 버튼 */
+        )}
+
+        {/* 카드 추가 버튼 */}
+        {!addingCard && (
           <button
             onPointerDown={e => e.stopPropagation()}
-            onClick={props.onStartAddCard}
+            onClick={onStartAddCard}
             className="flex items-center gap-1.5 px-2 py-2 text-xs font-medium
                        text-zinc-500 hover:text-zinc-800 hover:bg-white
                        rounded-xl transition-all duration-150 w-full"
-            aria-label="카드 추가"
           >
             <svg
               className="w-3.5 h-3.5"
@@ -276,18 +346,18 @@ function SortableColumn(props: SortableColumnProps) {
   );
 }
 
-/* ── Overlay 컴포넌트 ── */
+/* ── Overlay ── */
 function CardOverlay({ card }: { card: Card }) {
   return (
-    <div className="w-72 bg-white border border-blue-300 rounded-xl p-3.5 shadow-2xl rotate-1">
+    <div className="w-[280px] bg-white border border-blue-300 rounded-xl p-3.5 shadow-2xl rotate-1">
       <p className="text-sm font-medium text-zinc-800">{card.title}</p>
     </div>
   );
 }
 function ColumnOverlay({ col, colorClass }: { col: Column; colorClass: string }) {
   return (
-    <div className="w-72 bg-zinc-100/90 rounded-2xl p-3 shadow-2xl border border-blue-300">
-      <div className="flex items-center gap-2 mb-2">
+    <div className="w-[280px] bg-zinc-50/90 rounded-2xl p-3 shadow-2xl border border-blue-300">
+      <div className="flex items-center gap-2">
         <div className={`w-2 h-2 rounded-full ${colorClass}`} />
         <span className="text-sm font-semibold text-zinc-700">{col.title}</span>
       </div>
@@ -295,7 +365,7 @@ function ColumnOverlay({ col, colorClass }: { col: Column; colorClass: string })
   );
 }
 
-/* ── BoardPage (메인) ── */
+/* ── BoardPage ── */
 export default function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>();
   const { data: board, isLoading } = useBoard(boardId!);
@@ -328,10 +398,13 @@ export default function BoardPage() {
     () => (activeType === 'column' ? (board?.columns.find(c => c.id === activeId) ?? null) : null),
     [board, activeId, activeType]
   );
+  const activeColIdx = activeColumn
+    ? (board?.columns.findIndex(c => c.id === activeColumn.id) ?? 0)
+    : 0;
 
   if (isLoading)
     return (
-      <div className="flex items-center justify-center h-full text-zinc-400 text-sm gap-2">
+      <div className="flex items-center justify-center h-full gap-2 text-zinc-400 text-sm">
         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle
             className="opacity-25"
@@ -376,30 +449,33 @@ export default function BoardPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 보드 서브 헤더 (컬럼 수, 카드 총수) */}
-      <div className="flex items-center gap-4 px-6 py-3 bg-white border-b border-zinc-200 shrink-0">
-        <div className="flex items-center gap-2 text-xs text-zinc-400">
-          <svg
-            className="w-3.5 h-3.5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0
-                     002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0
-                     002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-            />
-          </svg>
-          컬럼 {board.columns.length}개 · 카드{' '}
-          {board.columns.reduce((s, c) => s + c.cards.length, 0)}개
+      {/* ── 보드 서브헤더 ── */}
+      <div className="bg-white border-b border-zinc-200 px-6 py-3 shrink-0">
+        <div className="flex items-center justify-between gap-4">
+          {/* 통계 */}
+          <BoardStats columns={board.columns} />
+
+          {/* 우측 액션 */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* 컬럼 색상 도트 목록 (xl+) */}
+            <div className="hidden xl:flex items-center gap-1.5">
+              {board.columns.map((col, idx) => (
+                <div key={col.id} className="flex items-center gap-1" title={col.title}>
+                  <div
+                    className={`w-2 h-2 rounded-full
+                                   ${COLUMN_COLORS[idx % COLUMN_COLORS.length]}`}
+                  />
+                  <span className="text-[11px] text-zinc-500 max-w-[80px] truncate">
+                    {col.title}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 칸반 스크롤 영역 */}
+      {/* ── 칸반 스크롤 영역 ── */}
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
         <DndContext
           sensors={sensors}
@@ -415,6 +491,7 @@ export default function BoardPage() {
                   key={col.id}
                   col={col}
                   colorClass={COLUMN_COLORS[idx % COLUMN_COLORS.length]}
+                  softClass={COLUMN_SOFT[idx % COLUMN_SOFT.length]}
                   onDeleteColumn={() => deleteColumn(col.id)}
                   onDeleteCard={id => deleteCard(id)}
                   addingCard={addingCardColId === col.id}
@@ -430,9 +507,9 @@ export default function BoardPage() {
               ))}
 
               {/* 컬럼 추가 */}
-              <div className="w-72 shrink-0">
+              <div className="w-[280px] xl:w-[296px] shrink-0">
                 {addingColumn ? (
-                  <div className="bg-zinc-100/80 rounded-2xl p-3">
+                  <div className="bg-zinc-100/80 rounded-2xl p-3 border border-zinc-200/60">
                     <input
                       autoFocus
                       value={newColTitle}
@@ -458,8 +535,8 @@ export default function BoardPage() {
                       <button
                         onClick={() => setAddingColumn(false)}
                         className="h-8 px-3 text-xs font-medium text-zinc-500
-                                   hover:text-zinc-800 hover:bg-zinc-200 rounded-xl
-                                   transition-colors duration-150"
+                                   hover:text-zinc-800 hover:bg-zinc-200
+                                   rounded-xl transition-colors duration-150"
                       >
                         취소
                       </button>
@@ -471,9 +548,8 @@ export default function BoardPage() {
                     className="w-full h-10 flex items-center justify-center gap-2
                                rounded-2xl border-2 border-dashed border-zinc-300
                                text-sm font-medium text-zinc-400
-                               hover:border-blue-400 hover:text-blue-500
-                               hover:bg-blue-50/50 transition-all duration-150"
-                    aria-label="컬럼 추가"
+                               hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50
+                               transition-all duration-150"
                   >
                     <svg
                       className="w-4 h-4"
@@ -496,11 +572,7 @@ export default function BoardPage() {
             {activeColumn && (
               <ColumnOverlay
                 col={activeColumn}
-                colorClass={
-                  COLUMN_COLORS[
-                    board.columns.findIndex(c => c.id === activeColumn.id) % COLUMN_COLORS.length
-                  ]
-                }
+                colorClass={COLUMN_COLORS[activeColIdx % COLUMN_COLORS.length]}
               />
             )}
           </DragOverlay>

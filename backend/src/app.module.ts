@@ -6,6 +6,7 @@ import { WorkspaceModule } from './workspace/workspace.module';
 import { BoardModule } from './board/board.module';
 import { KanbanModule } from './kanban/kanban.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { ActivityModule } from './activity/activity.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { GatewayModule } from './gateway/gateway.module';
     BoardModule,
     KanbanModule,
     GatewayModule,
+    ActivityModule,
   ],
 })
 export class AppModule {}
