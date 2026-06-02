@@ -7,6 +7,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Inject,
 } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,7 +16,10 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(
+    @Inject(NotificationService)
+    private readonly notificationService: NotificationService,
+  ) {}
 
   @Get()
   findAll(

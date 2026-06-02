@@ -23,7 +23,7 @@ export function NotificationBell() {
   const navigate = useNavigate();
 
   const { data: unreadData } = useUnreadCount();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotifications();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } = useNotifications();
   const { mutate: markAsRead } = useMarkAsRead();
   const { mutate: markAllAsRead } = useMarkAllAsRead();
 
@@ -96,7 +96,11 @@ export function NotificationBell() {
 
           {/* 목록 */}
           <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
-            {notifications.length === 0 ? (
+            {isLoading ? (
+              <p className="text-sm text-gray-400 text-center py-8">불러오는 중...</p>
+            ) : isError ? (
+              <p className="text-sm text-red-400 text-center py-8">알림을 불러오지 못했습니다.</p>
+            ) : notifications.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-8">알림이 없습니다.</p>
             ) : (
               notifications.map(n => (

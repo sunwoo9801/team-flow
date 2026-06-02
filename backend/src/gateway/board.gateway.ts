@@ -6,8 +6,11 @@ import {
   ConnectedSocket,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
 } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Server, Socket } from 'socket.io';
 import { WsJwtGuard } from './ws-jwt.guard';
 
@@ -26,7 +29,11 @@ export interface BoardEvent {
 }
 
 interface AuthSocket extends Socket {
-  user?: { sub: string; email: string };
+  data: {
+    userId?: string;
+    email?: string;
+    [key: string]: unknown;
+  };
 }
 
 @WebSocketGateway({
@@ -36,15 +43,44 @@ interface AuthSocket extends Socket {
   },
   namespace: 'boards',
 })
-export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class BoardGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server!: Server;
 
   // userId → Set<socketId> (한 유저가 여러 탭 오픈 가능)
   private userSockets = new Map<string, Set<string>>();
 
+  constructor(
+    @Inject(JwtService)
+    private readonly jwt: JwtService,
+    @Inject(ConfigService)
+    private readonly config: ConfigService,
+  ) {}
+
+  // 연결 시점에 JWT 검증 → socket.data.userId 세팅
+  afterInit(server: Server) {
+    server.use((socket: AuthSocket, next) => {
+      const token =
+        (socket.handshake.auth as { token?: string }).token ??
+        (socket.handshake.headers.authorization as string | undefined)?.split(' ')[1];
+
+      if (!token) return next(new Error('Unauthorized'));
+
+      try {
+        const payload = this.jwt.verify<{ sub: string; email: string }>(token, {
+          secret: this.config.getOrThrow<string>('JWT_SECRET'),
+        });
+        socket.data.userId = payload.sub;
+        socket.data.email = payload.email;
+        next();
+      } catch {
+        next(new Error('Unauthorized'));
+      }
+    });
+  }
+
   handleConnection(client: AuthSocket) {
-    const userId = client.user?.sub;
+    const userId = client.data?.userId;
     if (!userId) return;
 
     if (!this.userSockets.has(userId)) {
@@ -55,7 +91,7 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: AuthSocket) {
-    const userId = client.user?.sub;
+    const userId = client.data?.userId;
     if (userId) {
       const sockets = this.userSockets.get(userId);
       if (sockets) {

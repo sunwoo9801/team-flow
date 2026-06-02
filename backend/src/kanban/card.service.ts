@@ -21,7 +21,10 @@ export class CardService {
     @Inject(BoardGateway)
     private readonly gateway: BoardGateway,
 
+    @Inject(ActivityService)
     private readonly activityService: ActivityService,
+
+    @Inject(NotificationService)
     private readonly notificationService: NotificationService,
   ) {}
 

@@ -16,6 +16,8 @@
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
     "@commitlint/config-conventional": "^19.0.0",
+    "@swc/cli": "^0.8.1",
+    "@swc/core": "^1.15.40",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0"
   },

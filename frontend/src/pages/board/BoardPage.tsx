@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import {
   DndContext,
   DragOverlay,
@@ -24,6 +24,7 @@ import {
 } from '../../hooks/useKanban';
 import { useBoardSocket } from '../../hooks/useSocket';
 import { useDnd } from '../../hooks/useDnd';
+import { CardDetailModal } from '../../components/card/CardDetailModal';
 import type { Column, Card } from '../../hooks/useBoard';
 
 const COLUMN_COLORS = [
@@ -85,10 +86,12 @@ function SortableCard({
   card,
   columnId,
   onDelete,
+  onClick,
 }: {
   card: Card;
   columnId: string;
   onDelete: () => void;
+  onClick: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -103,9 +106,10 @@ function SortableCard({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
       {...listeners}
+      onClick={onClick}
       className={`
         group relative bg-white border rounded-xl p-3.5 select-none
-        cursor-grab active:cursor-grabbing
+        cursor-pointer
         transition-all duration-150
         ${
           isDragging
@@ -117,7 +121,7 @@ function SortableCard({
       {/* 삭제 버튼 */}
       <button
         onPointerDown={e => e.stopPropagation()}
-        onClick={onDelete}
+        onClick={e => { e.stopPropagation(); onDelete(); }}
         aria-label="카드 삭제"
         className="absolute top-2.5 right-2.5 w-5 h-5 flex items-center justify-center
                    rounded-md opacity-0 group-hover:opacity-100
@@ -185,6 +189,7 @@ function SortableColumn({
   softClass,
   onDeleteColumn,
   onDeleteCard,
+  onCardClick,
   addingCard,
   newCardTitle,
   onNewCardTitleChange,
@@ -197,6 +202,7 @@ function SortableColumn({
   softClass: string;
   onDeleteColumn: () => void;
   onDeleteCard: (id: string) => void;
+  onCardClick: (cardId: string) => void;
   addingCard: boolean;
   newCardTitle: string;
   onNewCardTitleChange: (v: string) => void;
@@ -275,6 +281,7 @@ function SortableColumn({
               card={card}
               columnId={col.id}
               onDelete={() => onDeleteCard(card.id)}
+              onClick={() => onCardClick(card.id)}
             />
           ))}
         </SortableContext>
@@ -367,8 +374,9 @@ function ColumnOverlay({ col, colorClass }: { col: Column; colorClass: string })
 
 /* ── BoardPage ── */
 export default function BoardPage() {
-  const { boardId } = useParams<{ boardId: string }>();
+  const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const { data: board, isLoading } = useBoard(boardId!);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useBoardSocket(boardId!);
 
@@ -383,6 +391,15 @@ export default function BoardPage() {
   const [addingColumn, setAddingColumn] = useState(false);
   const [addingCardColId, setAddingCardColId] = useState<string | null>(null);
   const [newCardTitle, setNewCardTitle] = useState('');
+
+  const selectedCardId = searchParams.get('card');
+  const selectedCard = useMemo(
+    () => board?.columns.flatMap(c => c.cards).find(c => c.id === selectedCardId) ?? null,
+    [board, selectedCardId]
+  );
+
+  const handleCardClick = (cardId: string) => setSearchParams({ card: cardId });
+  const handleModalClose = () => setSearchParams({});
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -449,6 +466,14 @@ export default function BoardPage() {
 
   return (
     <div className="flex flex-col h-full">
+      {selectedCard && workspaceId && (
+        <CardDetailModal
+          card={selectedCard}
+          boardId={boardId!}
+          workspaceId={workspaceId}
+          onClose={handleModalClose}
+        />
+      )}
       {/* ── 보드 서브헤더 ── */}
       <div className="bg-white border-b border-zinc-200 px-6 py-3 shrink-0">
         <div className="flex items-center justify-between gap-4">
@@ -494,6 +519,7 @@ export default function BoardPage() {
                   softClass={COLUMN_SOFT[idx % COLUMN_SOFT.length]}
                   onDeleteColumn={() => deleteColumn(col.id)}
                   onDeleteCard={id => deleteCard(id)}
+                  onCardClick={handleCardClick}
                   addingCard={addingCardColId === col.id}
                   newCardTitle={newCardTitle}
                   onNewCardTitleChange={setNewCardTitle}
