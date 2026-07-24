@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/axios';
+import type { Label } from '../api/label';
 
 export interface Board {
   id: string;
@@ -18,6 +19,7 @@ export interface Card {
   assigneeId: string | null;
   columnId: string;
   assignee: { id: string; name: string; email: string } | null;
+  labels: Label[];
 }
 
 export interface Column {

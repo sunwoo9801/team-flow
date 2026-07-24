@@ -8,6 +8,11 @@ import { KanbanModule } from './kanban/kanban.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { ActivityModule } from './activity/activity.module';
 import { NotificationModule } from './notification/notification.module';
+import { CommentModule } from './comment/comment.module';
+import { AttachmentModule } from './attachment/attachment.module';
+import { LabelModule } from './label/label.module';
+import { SnapshotModule } from './snapshot/snapshot.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -24,6 +29,11 @@ import { NotificationModule } from './notification/notification.module';
     GatewayModule,
     ActivityModule,
     NotificationModule,
+    CommentModule,
+    AttachmentModule,
+    LabelModule,
+    SnapshotModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

@@ -3,7 +3,7 @@ import type { DragEndEvent, DragOverEvent, DragStartEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMoveCard, useMoveColumn } from './useKanban';
-import type { BoardDetail, Column, Card } from './useBoard';
+import type { BoardDetail, Card } from './useBoard';
 
 // position 재계산: 앞뒤 중간값 (lexicographic float 방식)
 function calcPosition(items: { position: number }[], targetIndex: number): number {

@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { useUpdateCard } from '../../hooks/useKanban';
 import { CardActivityFeed } from '../activity/CardActivityFeed';
+import { CommentSection } from './CommentSection';
+import { AttachmentSection } from './AttachmentSection';
+import { LabelPicker } from './LabelPicker';
 import type { Card } from '../../hooks/useBoard';
 
 interface Props {
@@ -111,6 +114,22 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
               />
             </section>
 
+            {/* 댓글 */}
+            <section>
+              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                댓글
+              </h3>
+              <CommentSection cardId={card.id} members={members} />
+            </section>
+
+            {/* 첨부파일 */}
+            <section>
+              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                첨부파일
+              </h3>
+              <AttachmentSection cardId={card.id} />
+            </section>
+
             {/* 활동 */}
             <section>
               <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
@@ -122,6 +141,14 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
 
           {/* 오른쪽: 사이드바 */}
           <div className="w-52 shrink-0 border-l border-zinc-100 px-4 py-5 flex flex-col gap-6 overflow-y-auto bg-zinc-50/50">
+            {/* 라벨 */}
+            <section>
+              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                라벨
+              </h3>
+              <LabelPicker boardId={boardId} cardId={card.id} cardLabels={card.labels} />
+            </section>
+
             {/* 담당자 */}
             <section>
               <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">

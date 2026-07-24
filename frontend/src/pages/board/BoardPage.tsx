@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import {
   DndContext,
   DragOverlay,
@@ -16,6 +16,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useBoard } from '../../hooks/useBoard';
+import { useWorkspace } from '../../hooks/useWorkspace';
+import { useBoardLabels } from '../../hooks/useLabels';
 import {
   useCreateColumn,
   useDeleteColumn,
@@ -25,7 +27,54 @@ import {
 import { useBoardSocket } from '../../hooks/useSocket';
 import { useDnd } from '../../hooks/useDnd';
 import { CardDetailModal } from '../../components/card/CardDetailModal';
+import { BoardFilterBar, UNASSIGNED, type DueFilter } from '../../components/board/BoardFilterBar';
+import { FilteredCardCount } from '../../components/board/FilteredCardCount';
+import { HistoryPanel } from '../../components/board/HistoryPanel';
+import { CursorOverlay } from '../../components/board/CursorOverlay';
+import { useAuthStore } from '../../store/auth.store';
+import { highlightMatch } from '../../utils/highlightText';
 import type { Column, Card } from '../../hooks/useBoard';
+
+function matchesSearch(card: Card, query: string): boolean {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return true;
+  return (
+    card.title.toLowerCase().includes(needle) ||
+    (card.description ?? '').toLowerCase().includes(needle)
+  );
+}
+
+function matchesAssignee(card: Card, selected: string[]): boolean {
+  if (selected.length === 0) return true;
+  if (card.assigneeId) return selected.includes(card.assigneeId);
+  return selected.includes(UNASSIGNED);
+}
+
+function matchesLabels(card: Card, selected: string[]): boolean {
+  if (selected.length === 0) return true;
+  return card.labels.some(l => selected.includes(l.id));
+}
+
+function matchesDue(dueDate: string | null, filter: DueFilter): boolean {
+  if (filter === 'all') return true;
+  if (filter === 'none') return !dueDate;
+  if (!dueDate) return false;
+
+  const due = new Date(dueDate);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfToday = new Date(startOfToday);
+  endOfToday.setDate(endOfToday.getDate() + 1);
+
+  if (filter === 'overdue') return due < startOfToday;
+  if (filter === 'today') return due >= startOfToday && due < endOfToday;
+  if (filter === 'week') {
+    const endOfWeek = new Date(startOfToday);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
+    return due >= startOfToday && due < endOfWeek;
+  }
+  return true;
+}
 
 const COLUMN_COLORS = [
   'bg-blue-400',
@@ -87,11 +136,13 @@ function SortableCard({
   columnId,
   onDelete,
   onClick,
+  searchQuery,
 }: {
   card: Card;
   columnId: string;
   onDelete: () => void;
   onClick: () => void;
+  searchQuery: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -107,6 +158,8 @@ function SortableCard({
       {...attributes}
       {...listeners}
       onClick={onClick}
+      data-testid="board-card"
+      data-card-name={card.title}
       className={`
         group relative bg-white border rounded-xl p-3.5 select-none
         cursor-pointer
@@ -139,7 +192,21 @@ function SortableCard({
         </svg>
       </button>
 
-      <p className="text-sm font-medium text-zinc-800 leading-snug pr-5">{card.title}</p>
+      {card.labels.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-1.5">
+          {card.labels.map(label => (
+            <span
+              key={label.id}
+              className="h-1.5 w-6 rounded-full"
+              style={{ backgroundColor: label.color }}
+              title={label.name}
+            />
+          ))}
+        </div>
+      )}
+      <p className="text-sm font-medium text-zinc-800 leading-snug pr-5">
+        {highlightMatch(card.title, searchQuery)}
+      </p>
 
       {(card.assignee || card.dueDate) && (
         <div className="flex items-center justify-between mt-3 gap-2">
@@ -196,6 +263,7 @@ function SortableColumn({
   onStartAddCard,
   onCancelAddCard,
   onAddCard,
+  searchQuery,
 }: {
   col: Column;
   colorClass: string;
@@ -209,6 +277,7 @@ function SortableColumn({
   onStartAddCard: () => void;
   onCancelAddCard: () => void;
   onAddCard: () => void;
+  searchQuery: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: col.id,
@@ -222,6 +291,8 @@ function SortableColumn({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
+      data-testid="board-column"
+      data-column-name={col.title}
       className={`
         w-[280px] xl:w-[296px] 2xl:w-[312px] 3xl:w-[328px]
         shrink-0 flex flex-col
@@ -282,6 +353,7 @@ function SortableColumn({
               columnId={col.id}
               onDelete={() => onDeleteCard(card.id)}
               onClick={() => onCardClick(card.id)}
+              searchQuery={searchQuery}
             />
           ))}
         </SortableContext>
@@ -376,9 +448,125 @@ function ColumnOverlay({ col, colorClass }: { col: Column; colorClass: string })
 export default function BoardPage() {
   const { workspaceId, boardId } = useParams<{ workspaceId: string; boardId: string }>();
   const { data: board, isLoading } = useBoard(boardId!);
+  const { data: workspace } = useWorkspace(workspaceId!);
+  const { data: boardLabels } = useBoardLabels(boardId!);
+  const { user } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  useBoardSocket(boardId!);
+  const { cursors, sendCursor } = useBoardSocket(boardId!);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const handlePointerMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = contentRef.current?.getBoundingClientRect();
+      if (!rect || rect.width === 0 || rect.height === 0) return;
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      sendCursor(x, y, user?.name ?? '익명');
+    },
+    [sendCursor, user?.name]
+  );
+
+  // ── 필터 & 검색 ──
+  const searchQuery = searchParams.get('q') ?? '';
+  const selectedAssignees = useMemo(
+    () => searchParams.get('assignee')?.split(',').filter(Boolean) ?? [],
+    [searchParams]
+  );
+  const dueFilter = (searchParams.get('due') as DueFilter | null) ?? 'all';
+  const selectedLabels = useMemo(
+    () => searchParams.get('label')?.split(',').filter(Boolean) ?? [],
+    [searchParams]
+  );
+
+  const [searchInput, setSearchInput] = useState(searchQuery);
+
+  // 디바운스 검색 (300ms) — 입력은 즉시 반영, URL 반영은 지연
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        if (searchInput.trim()) next.set('q', searchInput.trim());
+        else next.delete('q');
+        return next;
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput]);
+
+  const toggleAssignee = (value: string) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      const current = next.get('assignee')?.split(',').filter(Boolean) ?? [];
+      const updated = current.includes(value)
+        ? current.filter(v => v !== value)
+        : [...current, value];
+      if (updated.length > 0) next.set('assignee', updated.join(','));
+      else next.delete('assignee');
+      return next;
+    });
+  };
+
+  const handleDueFilterChange = (value: DueFilter) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value === 'all') next.delete('due');
+      else next.set('due', value);
+      return next;
+    });
+  };
+
+  const toggleLabel = (labelId: string) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      const current = next.get('label')?.split(',').filter(Boolean) ?? [];
+      const updated = current.includes(labelId)
+        ? current.filter(v => v !== labelId)
+        : [...current, labelId];
+      if (updated.length > 0) next.set('label', updated.join(','));
+      else next.delete('label');
+      return next;
+    });
+  };
+
+  const hasActiveFilters =
+    !!searchQuery || selectedAssignees.length > 0 || dueFilter !== 'all' || selectedLabels.length > 0;
+
+  const clearFilters = () => {
+    setSearchInput('');
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('q');
+      next.delete('assignee');
+      next.delete('due');
+      next.delete('label');
+      return next;
+    });
+  };
+
+  const filteredColumns = useMemo(() => {
+    if (!board) return [];
+    if (!hasActiveFilters) return board.columns;
+    return board.columns.map(col => ({
+      ...col,
+      cards: col.cards.filter(
+        card =>
+          matchesSearch(card, searchQuery) &&
+          matchesAssignee(card, selectedAssignees) &&
+          matchesDue(card.dueDate, dueFilter) &&
+          matchesLabels(card, selectedLabels)
+      ),
+    }));
+  }, [board, hasActiveFilters, searchQuery, selectedAssignees, dueFilter, selectedLabels]);
+
+  const totalCardCount = useMemo(
+    () => board?.columns.reduce((s, c) => s + c.cards.length, 0) ?? 0,
+    [board]
+  );
+  const filteredCardCount = useMemo(
+    () => filteredColumns.reduce((s, c) => s + c.cards.length, 0),
+    [filteredColumns]
+  );
 
   const { mutate: createColumn } = useCreateColumn(boardId!);
   const { mutate: deleteColumn } = useDeleteColumn(boardId!);
@@ -398,8 +586,18 @@ export default function BoardPage() {
     [board, selectedCardId]
   );
 
-  const handleCardClick = (cardId: string) => setSearchParams({ card: cardId });
-  const handleModalClose = () => setSearchParams({});
+  const handleCardClick = (cardId: string) =>
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('card', cardId);
+      return next;
+    });
+  const handleModalClose = () =>
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('card');
+      return next;
+    });
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -475,10 +673,17 @@ export default function BoardPage() {
         />
       )}
       {/* ── 보드 서브헤더 ── */}
-      <div className="bg-white border-b border-zinc-200 px-6 py-3 shrink-0">
+      <div className="bg-white border-b border-zinc-200 px-6 py-3 shrink-0 space-y-2.5">
         <div className="flex items-center justify-between gap-4">
           {/* 통계 */}
-          <BoardStats columns={board.columns} />
+          <div className="flex items-center gap-4">
+            <BoardStats columns={board.columns} />
+            <FilteredCardCount
+              filteredCount={filteredCardCount}
+              totalCount={totalCardCount}
+              isFiltered={hasActiveFilters}
+            />
+          </div>
 
           {/* 우측 액션 */}
           <div className="flex items-center gap-2 shrink-0">
@@ -496,8 +701,37 @@ export default function BoardPage() {
                 </div>
               ))}
             </div>
+
+            <Link
+              to={`/workspace/${workspaceId}/board/${boardId}/dashboard`}
+              className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium text-zinc-600
+                         bg-white border border-zinc-200 rounded-lg hover:border-zinc-300
+                         transition-colors duration-150"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6m6 13V10M4 19h16M4 19V4" />
+              </svg>
+              통계
+            </Link>
+
+            <HistoryPanel boardId={boardId!} />
           </div>
         </div>
+
+        <BoardFilterBar
+          searchInput={searchInput}
+          onSearchInputChange={setSearchInput}
+          members={workspace?.members ?? []}
+          selectedAssignees={selectedAssignees}
+          onToggleAssignee={toggleAssignee}
+          dueFilter={dueFilter}
+          onDueFilterChange={handleDueFilterChange}
+          labels={boardLabels ?? []}
+          selectedLabels={selectedLabels}
+          onToggleLabel={toggleLabel}
+          hasActiveFilters={hasActiveFilters}
+          onClear={clearFilters}
+        />
       </div>
 
       {/* ── 칸반 스크롤 영역 ── */}
@@ -510,8 +744,14 @@ export default function BoardPage() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-            <div className="flex gap-4 p-6 h-full items-start" style={{ minWidth: 'max-content' }}>
-              {board.columns.map((col: Column, idx) => (
+            <div
+              ref={contentRef}
+              onMouseMove={handlePointerMove}
+              className="relative flex gap-4 p-6 h-full items-start"
+              style={{ minWidth: 'max-content' }}
+            >
+              <CursorOverlay cursors={Object.values(cursors)} />
+              {filteredColumns.map((col: Column, idx) => (
                 <SortableColumn
                   key={col.id}
                   col={col}
@@ -529,6 +769,7 @@ export default function BoardPage() {
                     setNewCardTitle('');
                   }}
                   onAddCard={() => handleAddCard(col.id)}
+                  searchQuery={searchQuery}
                 />
               ))}
 

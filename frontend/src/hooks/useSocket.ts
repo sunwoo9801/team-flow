@@ -14,14 +14,35 @@ interface BoardEvent {
     | 'column:moved'
     | 'column:created'
     | 'column:updated'
-    | 'column:deleted';
+    | 'column:deleted'
+    | 'comment:created'
+    | 'comment:deleted'
+    | 'attachment:created'
+    | 'attachment:deleted'
+    | 'label:created'
+    | 'label:updated'
+    | 'label:deleted'
+    | 'board:restored';
   payload: unknown;
   userId: string;
 }
 
+export interface RemoteCursor {
+  userId: string;
+  name: string;
+  x: number;
+  y: number;
+  updatedAt: number;
+}
+
+const CURSOR_TTL_MS = 4000;
+const CURSOR_THROTTLE_MS = 50;
+
 export function useBoardSocket(boardId: string) {
   const socketRef = useRef<Socket | null>(null);
   const queryClient = useQueryClient();
+  const [cursors, setCursors] = useState<Record<string, RemoteCursor>>({});
+  const lastCursorSentRef = useRef(0);
 
   const applyEvent = useCallback(
     (event: BoardEvent) => {
@@ -98,6 +119,35 @@ export function useBoardSocket(boardId: string) {
             };
           }
 
+          case 'comment:created':
+          case 'comment:deleted': {
+            const { cardId } = event.payload as { cardId: string };
+            queryClient.invalidateQueries({ queryKey: ['comments', cardId] });
+            queryClient.invalidateQueries({ queryKey: ['activities', cardId] });
+            return old;
+          }
+
+          case 'attachment:created':
+          case 'attachment:deleted': {
+            const { cardId } = event.payload as { cardId: string };
+            queryClient.invalidateQueries({ queryKey: ['attachments', cardId] });
+            queryClient.invalidateQueries({ queryKey: ['activities', cardId] });
+            return old;
+          }
+
+          case 'label:created':
+          case 'label:updated':
+          case 'label:deleted':
+            queryClient.invalidateQueries({ queryKey: ['labels', boardId] });
+            queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
+            return old;
+
+          case 'board:restored':
+            queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
+            queryClient.invalidateQueries({ queryKey: ['labels', boardId] });
+            queryClient.invalidateQueries({ queryKey: ['snapshots', boardId] });
+            return old;
+
           default:
             // 컬럼 이벤트는 전체 refetch
             queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
@@ -127,6 +177,10 @@ export function useBoardSocket(boardId: string) {
       applyEvent(event);
     });
 
+    socket.on('cursor:move', (data: Omit<RemoteCursor, 'updatedAt'>) => {
+      setCursors(prev => ({ ...prev, [data.userId]: { ...data, updatedAt: Date.now() } }));
+    });
+
     socket.on('connect_error', (err: Error) => {
       console.error('Socket connection error:', err.message);
     });
@@ -137,7 +191,32 @@ export function useBoardSocket(boardId: string) {
     };
   }, [boardId, applyEvent]);
 
-  return socketRef;
+  // 오래된(연결 끊긴) 커서 정리
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCursors(prev => {
+        const now = Date.now();
+        const next: Record<string, RemoteCursor> = {};
+        for (const [userId, cursor] of Object.entries(prev)) {
+          if (now - cursor.updatedAt < CURSOR_TTL_MS) next[userId] = cursor;
+        }
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const sendCursor = useCallback(
+    (x: number, y: number, name: string) => {
+      const now = Date.now();
+      if (now - lastCursorSentRef.current < CURSOR_THROTTLE_MS) return;
+      lastCursorSentRef.current = now;
+      socketRef.current?.emit('cursor:move', { boardId, x, y, name });
+    },
+    [boardId]
+  );
+
+  return { socketRef, cursors, sendCursor };
 }
 
 export default function useSocket(): Socket | null {

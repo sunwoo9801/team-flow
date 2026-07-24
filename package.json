@@ -4,13 +4,18 @@
   "private": true,
   "workspaces": [
     "frontend",
-    "backend"
+    "backend",
+    "e2e"
   ],
   "scripts": {
     "dev:fe": "npm run dev --workspace=frontend",
     "dev:be": "npm run start:dev --workspace=backend",
     "lint:fe": "npm run lint --workspace=frontend",
     "lint:be": "npm run lint --workspace=backend",
+    "typecheck:fe": "tsc -p frontend/tsconfig.app.json --noEmit",
+    "typecheck:be": "tsc -p backend/tsconfig.build.json --noEmit",
+    "test": "npm run typecheck:be && npm run typecheck:fe",
+    "test:e2e": "npm run test --workspace=e2e",
     "prepare": "husky"
   },
   "devDependencies": {

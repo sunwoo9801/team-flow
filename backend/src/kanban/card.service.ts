@@ -45,7 +45,10 @@ export class CardService {
         assigneeId: dto.assigneeId ?? null,
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
       },
-      include: { assignee: { select: { id: true, name: true, email: true } } },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        labels: { select: { id: true, boardId: true, name: true, color: true } },
+      },
     });
 
     await this.activityService.logCardCreated(card.id, userId, card.title);
@@ -78,6 +81,7 @@ export class CardService {
       orderBy: { position: 'asc' },
       include: {
         assignee: { select: { id: true, name: true, email: true } },
+        labels: { select: { id: true, boardId: true, name: true, color: true } },
       },
     });
   }
@@ -87,6 +91,7 @@ export class CardService {
       where: { id: cardId },
       include: {
         assignee: { select: { id: true, name: true, email: true } },
+        labels: { select: { id: true, boardId: true, name: true, color: true } },
       },
     });
     if (!card) throw new NotFoundException('카드를 찾을 수 없습니다.');
@@ -108,7 +113,10 @@ export class CardService {
           dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         }),
       },
-      include: { assignee: { select: { id: true, name: true, email: true } } },
+      include: {
+        assignee: { select: { id: true, name: true, email: true } },
+        labels: { select: { id: true, boardId: true, name: true, color: true } },
+      },
     });
 
     const trackableFields = [

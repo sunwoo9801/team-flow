@@ -45,6 +45,7 @@ export class BoardService {
               orderBy: { position: 'asc' },
               include: {
                 assignee: { select: { id: true, name: true, email: true } },
+                labels: { select: { id: true, boardId: true, name: true, color: true } },
               },
             },
           },

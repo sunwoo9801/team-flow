@@ -54,6 +54,13 @@ const router = createBrowserRouter([
               return { Component: C };
             },
           },
+          {
+            path: 'workspace/:workspaceId/board/:boardId/dashboard',
+            lazy: async () => {
+              const { default: C } = await import('../pages/board/BoardDashboardPage');
+              return { Component: C };
+            },
+          },
         ],
       },
     ],

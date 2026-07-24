@@ -1,4 +1,4 @@
-import { NavLink, useNavigate, useParams } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useWorkspaceStore } from '../../store/workspace.store';
 import { useWorkspace } from '../../hooks/useWorkspace';

@@ -23,7 +23,15 @@ export interface BoardEvent {
     | 'column:moved'
     | 'column:created'
     | 'column:updated'
-    | 'column:deleted';
+    | 'column:deleted'
+    | 'comment:created'
+    | 'comment:deleted'
+    | 'attachment:created'
+    | 'attachment:deleted'
+    | 'label:created'
+    | 'label:updated'
+    | 'label:deleted'
+    | 'board:restored';
   payload: unknown;
   userId: string;
 }
@@ -120,6 +128,21 @@ export class BoardGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
   ) {
     client.leave(`board:${data.boardId}`);
     return { event: 'board:left', data: { boardId: data.boardId } };
+  }
+
+  // 실시간 커서 위치 공유 — 클라이언트가 throttle해서 보내므로 서버는 같은 방에만 relay
+  @UseGuards(WsJwtGuard)
+  @SubscribeMessage('cursor:move')
+  handleCursorMove(
+    @ConnectedSocket() client: AuthSocket,
+    @MessageBody() data: { boardId: string; x: number; y: number; name: string },
+  ) {
+    client.to(`board:${data.boardId}`).emit('cursor:move', {
+      userId: client.data.userId,
+      name: data.name,
+      x: data.x,
+      y: data.y,
+    });
   }
 
   // 보드 전체 브로드캐스트 (서비스에서 호출)

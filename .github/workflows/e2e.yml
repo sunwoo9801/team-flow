@@ -1,0 +1,76 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: teamflow
+          POSTGRES_PASSWORD: teamflow1234
+          POSTGRES_DB: teamflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U teamflow"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      CI: true
+      DATABASE_URL: postgresql://teamflow:teamflow1234@localhost:5432/teamflow?schema=public
+      JWT_SECRET: e2e-test-secret
+      JWT_REFRESH_SECRET: e2e-test-refresh-secret
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      GOOGLE_CLIENT_ID: dummy
+      GOOGLE_CLIENT_SECRET: dummy
+      GOOGLE_CALLBACK_URL: http://localhost:4000/api/auth/google/callback
+      # NOTE: 이 워크플로우는 로그인/보드/D&D 플로우만 검증하며 첨부파일(S3) 엔드포인트는
+      # 호출하지 않는다. 아래 값은 AttachmentService가 부팅 시 S3Client를 생성할 때 필요한
+      # 자리 표시자일 뿐, 실제 AWS 자격증명이 아니며 절대 실제 키를 넣지 않는다.
+      AWS_REGION: us-east-1
+      AWS_S3_BUCKET: dummy-bucket
+      AWS_ACCESS_KEY_ID: dummy
+      AWS_SECRET_ACCESS_KEY: dummy
+      FRONTEND_URL: http://localhost:3000
+      E2E_FRONTEND_URL: http://localhost:3000
+      E2E_BACKEND_URL: http://localhost:4000/api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run database migrations
+        run: npx --prefix backend prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://teamflow:teamflow1234@localhost:5432/teamflow?schema=public
+
+      - name: Install Playwright browsers
+        run: npx --prefix e2e playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
