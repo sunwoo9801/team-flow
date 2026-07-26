@@ -21,15 +21,13 @@ export default tseslint.config(
   },
   prettierConfig,
   {
-    ignores: ['dist/**', 'node_modules/**', 'eslint.config.js', 'prisma/**'],
-  },
-  {
     ignores: [
       'dist/**',
       'node_modules/**',
-      'eslint.config.js',
+      'eslint.config.mjs',
       'prisma/**',
       'prisma.config.ts',
+      'scripts/**',
     ],
   },
 );

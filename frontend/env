@@ -11,12 +11,11 @@ JWT_REFRESH_SECRET=your-refresh-secret-key
 JWT_REFRESH_EXPIRES_IN=30d
 
 # ─── OAuth ──────────────────────────────────
-GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_CLIENT_ID=378692989399-pgnhannf8vp0efqteb9jsc43q3gmp0s3.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
 GOOGLE_CALLBACK_URL=http://localhost:4000/api/auth/google/callback
 
 # ─── App ────────────────────────────────────
-# 배포 시: NODE_ENV=production, FRONTEND_URL은 실제 프론트 도메인(https)으로 설정
 NODE_ENV=development
 PORT=4000
 FRONTEND_URL=http://localhost:3000
@@ -31,3 +30,5 @@ AWS_S3_BUCKET=your-bucket-name
 AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
 AWS_REGION=ap-northeast-2
+
+VITE_API_URL=http://localhost:4000/api

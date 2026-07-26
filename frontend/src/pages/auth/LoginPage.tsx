@@ -74,7 +74,7 @@ export default function LoginPage() {
         {/* 하단 인용 */}
         <div className="relative z-10">
           <p className="text-zinc-500 text-sm italic">
-            "좋은 디자인은 가능한 한 적게 디자인하는 것이다."
+            &ldquo;좋은 디자인은 가능한 한 적게 디자인하는 것이다.&rdquo;
           </p>
           <p className="text-zinc-600 text-xs mt-1">— Dieter Rams</p>
         </div>

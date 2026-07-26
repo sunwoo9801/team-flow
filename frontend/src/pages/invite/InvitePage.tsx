@@ -25,12 +25,16 @@ export default function InvitePage() {
   const navigate = useNavigate();
   const [info, setInfo] = useState<InviteInfo | null>(null);
   const [error, setError] = useState('');
+  const [daysLeft, setDaysLeft] = useState(0);
   const { mutateAsync: accept, isPending } = useAcceptInvite();
 
   useEffect(() => {
     api
       .get<InviteInfo>(`/workspaces/invite/${token}`)
-      .then(({ data }) => setInfo(data))
+      .then(({ data }) => {
+        setInfo(data);
+        setDaysLeft(Math.ceil((new Date(data.expiresAt).getTime() - Date.now()) / 86400000));
+      })
       .catch(() => setError('유효하지 않거나 만료된 초대 링크입니다.'));
   }, [token]);
 
@@ -70,9 +74,6 @@ export default function InvitePage() {
   }
 
   const [from, to] = info ? getGradient(info.workspace.name) : ['from-zinc-400', 'to-zinc-500'];
-  const daysLeft = info
-    ? Math.ceil((new Date(info.expiresAt).getTime() - Date.now()) / 86400000)
-    : 0;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-6">

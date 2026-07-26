@@ -9,7 +9,6 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
-  UnauthorizedException,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -20,10 +19,12 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 
+const IS_PROD = process.env.NODE_ENV === 'production';
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: process.env.NODE_ENV === 'production',
+  // 배포 환경에서는 프론트/백엔드가 서로 다른 도메인이라 sameSite: 'none'이 필요함 (secure 필수 동반)
+  sameSite: (IS_PROD ? 'none' : 'lax') as 'none' | 'lax',
+  secure: IS_PROD,
   path: '/',
 };
 
@@ -98,7 +99,11 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logout(userId);
-    res.clearCookie('refresh_token', { path: '/' });
+    res.clearCookie('refresh_token', {
+      path: '/',
+      sameSite: COOKIE_OPTIONS.sameSite,
+      secure: COOKIE_OPTIONS.secure,
+    });
   }
 
   @Get('me')

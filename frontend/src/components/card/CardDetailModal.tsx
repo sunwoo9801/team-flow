@@ -22,15 +22,10 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
   const [description, setDescription] = useState(card.description ?? '');
   const titleRef = useRef<HTMLTextAreaElement>(null);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- resyncs local draft when another user edits the card in real time
   useEffect(() => { setTitle(card.title); }, [card.title]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- resyncs local draft when another user edits the card in real time
   useEffect(() => { setDescription(card.description ?? ''); }, [card.description]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') handleConfirm(); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, description]);
 
   const saveTitle = () => {
     const trimmed = title.trim();
@@ -50,6 +45,13 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
     saveDescription();
     onClose();
   };
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') handleConfirm(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, description]);
 
   const members = workspace?.members ?? [];
   const overdue = card.dueDate && new Date(card.dueDate) < new Date();

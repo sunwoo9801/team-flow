@@ -231,6 +231,7 @@ export default function useSocket(): Socket | null {
       transports: ['websocket'],
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- exposes the connected socket instance to consumers
     setSocket(s);
 
     return () => {
