@@ -12,8 +12,5 @@ coverage
 .env
 .env.*
 !.env.example
-cd
-git
-type
-github
-vscode
+cookies.txt
+backend/cookies.txt

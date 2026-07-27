@@ -28,6 +28,9 @@ export default tseslint.config(
       'prisma/**',
       'prisma.config.ts',
       'scripts/**',
+      'weple-money/**',
+      'generated/**',
+      'src/generated/**',
     ],
   },
 );

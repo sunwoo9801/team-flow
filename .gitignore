@@ -27,7 +27,7 @@ backend/src/generated/
 
 
 # ─── IDE ────────────────────────────────────
-.vscode/settings.json
+# .vscode/settings.json 는 팀 공용 설정(eslint.workingDirectories 등)이라 커밋함
 .idea/
 .claude/
 
@@ -45,3 +45,7 @@ logs/
 
 # ─── Coverage ───────────────────────────────
 coverage/
+
+# ─── 로컬 테스트로 생성되는 실제 토큰이 담길 수 있음 ──
+cookies.txt
+backend/cookies.txt
