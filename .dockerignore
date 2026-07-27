@@ -7,6 +7,7 @@ backend/generated
 .github
 .husky
 e2e
+!e2e/package.json
 coverage
 *.log
 .env
