@@ -116,7 +116,7 @@ export function LabelPicker({ boardId, cardId, cardLabels }: Props) {
               className="w-full h-7 px-2 text-xs bg-white border border-zinc-200 rounded-lg
                          focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
             />
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {LABEL_COLORS.map(color => (
                 <button
                   key={color}
@@ -128,15 +128,15 @@ export function LabelPicker({ boardId, cardId, cardLabels }: Props) {
                   style={{ backgroundColor: color }}
                 />
               ))}
-              <button
-                onClick={handleCreate}
-                disabled={!newName.trim() || isCreating}
-                className="ml-auto h-6 px-2.5 text-[11px] font-semibold text-white bg-blue-600
-                           hover:bg-blue-700 disabled:bg-zinc-300 rounded-lg transition-colors"
-              >
-                추가
-              </button>
             </div>
+            <button
+              onClick={handleCreate}
+              disabled={!newName.trim() || isCreating}
+              className="w-full h-6 text-[11px] font-semibold text-white bg-blue-600
+                         hover:bg-blue-700 disabled:bg-zinc-300 rounded-lg transition-colors"
+            >
+              추가
+            </button>
           </div>
         </div>
       )}
