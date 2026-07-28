@@ -63,7 +63,7 @@ export default function InvitePage() {
           <p className="text-sm text-zinc-500 mb-6">{error}</p>
           <button
             onClick={() => navigate('/')}
-            className="h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm
+            className="h-9 px-5 bg-accent-500 hover:bg-accent-600 text-white text-sm
                        font-semibold rounded-lg transition-colors duration-150"
           >
             홈으로
@@ -80,7 +80,7 @@ export default function InvitePage() {
       <div className="w-full max-w-sm animate-fade-in">
         {/* 로고 */}
         <div className="flex items-center gap-2 mb-10">
-          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+          <div className="w-7 h-7 rounded-lg bg-accent-500 flex items-center justify-center">
             <svg
               className="w-3.5 h-3.5 text-white"
               fill="none"
@@ -97,11 +97,11 @@ export default function InvitePage() {
           <span className="font-semibold text-zinc-900">Team Flow</span>
         </div>
 
-        <div className="bg-white border border-zinc-200 rounded-2xl p-8 shadow-sm text-center">
+        <div className="bg-white border border-zinc-200 rounded-xl p-8 shadow-sm text-center">
           {/* 워크스페이스 아이콘 */}
           {info && (
             <div
-              className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${from} ${to}
+              className={`w-16 h-16 rounded-xl bg-gradient-to-br ${from} ${to}
                             flex items-center justify-center mx-auto mb-5 shadow-sm`}
             >
               <span className="text-white font-bold text-2xl uppercase">
@@ -159,7 +159,7 @@ export default function InvitePage() {
                 onClick={handleAccept}
                 disabled={isPending}
                 className="mt-6 w-full h-11 flex items-center justify-center gap-2
-                           bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                           bg-accent-500 hover:bg-accent-600 active:bg-accent-700
                            disabled:opacity-50 text-white text-sm font-semibold
                            rounded-xl transition-colors duration-150"
               >

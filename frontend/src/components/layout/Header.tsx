@@ -82,8 +82,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <button
             onClick={() => navigate(`/workspace/${workspaceId}/board/new`)}
             className="hidden sm:flex items-center gap-1.5 h-8 px-3
-                       bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold
-                       rounded-lg transition-colors duration-150"
+                       bg-accent-500 hover:bg-accent-600 text-white text-xs font-medium
+                       rounded-md transition-colors duration-150"
           >
             <svg
               className="w-3.5 h-3.5"
@@ -101,7 +101,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         <NotificationBell />
 
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-medium text-indigo-700">
+          <div className="w-8 h-8 rounded-full bg-accent-100 flex items-center justify-center text-sm font-medium text-accent-700">
             {user?.name?.slice(0, 2).toUpperCase() ?? 'ME'}
           </div>
           <span className="text-sm text-zinc-700 hidden sm:block">{user?.name}</span>

@@ -35,7 +35,7 @@ export default function LoginPage() {
         <div className="pointer-events-none absolute inset-0">
           <div
             className="absolute -top-40 -left-20 w-[480px] h-[480px]
-                          bg-blue-600/20 rounded-full blur-3xl"
+                          bg-accent-500/20 rounded-full blur-3xl"
           />
           <div
             className="absolute -bottom-40 -right-20 w-[380px] h-[380px]
@@ -97,7 +97,7 @@ export default function LoginPage() {
           {errorMsg && (
             <div
               className="mb-6 flex items-start gap-3 p-3.5 bg-red-50 border border-red-200
-                            rounded-xl text-sm text-red-700"
+                            rounded-lg text-sm text-red-700"
             >
               <ErrorIcon />
               <span>{errorMsg}</span>
@@ -126,7 +126,7 @@ export default function LoginPage() {
               <div className="mt-1.5 text-right">
                 <Link
                   to="/forgot-password"
-                  className="text-xs text-zinc-500 hover:text-blue-600 transition-colors"
+                  className="text-xs text-zinc-500 hover:text-accent-600 transition-colors"
                 >
                   비밀번호를 잊으셨나요?
                 </Link>
@@ -157,7 +157,7 @@ export default function LoginPage() {
             계정이 없으신가요?{' '}
             <Link
               to="/register"
-              className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+              className="text-accent-600 font-semibold hover:text-accent-700 transition-colors"
             >
               회원가입
             </Link>
@@ -173,7 +173,7 @@ export default function LoginPage() {
 function AppLogo({ white = false }: { white?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-accent-500 flex items-center justify-center shrink-0">
         <svg
           className="w-4 h-4 text-white"
           fill="none"
@@ -218,7 +218,7 @@ function Field({ label, type, value, onChange, placeholder, autoComplete }: Fiel
         placeholder={placeholder}
         className="w-full h-10 px-3.5 bg-white border border-zinc-300 rounded-lg
                    text-sm text-zinc-900 placeholder:text-zinc-400
-                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                   focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent
                    transition-shadow duration-150"
       />
     </div>
@@ -245,7 +245,7 @@ function PrimaryButton({
       disabled={loading || disabled}
       onClick={onClick}
       className={`w-full h-10 flex items-center justify-center gap-2
-                  bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                  bg-accent-500 hover:bg-accent-600 active:bg-accent-700
                   disabled:opacity-50 disabled:cursor-not-allowed
                   text-white text-sm font-semibold rounded-lg
                   transition-colors duration-150 ${className}`}

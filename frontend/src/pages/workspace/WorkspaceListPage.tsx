@@ -31,7 +31,7 @@ function StatCard({
   sub?: string;
 }) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-2xl px-5 py-4 flex items-start gap-4">
+    <div className="bg-white border border-zinc-200 rounded-xl px-5 py-4 flex items-start gap-4">
       <div
         className="w-10 h-10 rounded-xl bg-zinc-50 border border-zinc-200
                       flex items-center justify-center text-xl shrink-0"
@@ -53,8 +53,8 @@ function WorkspaceCard({ ws, onClick }: { ws: Workspace; onClick: () => void }) 
   return (
     <button
       onClick={onClick}
-      className="group text-left bg-white border border-zinc-200 rounded-2xl p-5
-                 hover:border-zinc-300 hover:shadow-md active:scale-[0.98]
+      className="group text-left bg-white border border-zinc-200 rounded-xl p-5
+                 hover:border-zinc-300 hover:shadow-[0_1px_3px_rgba(0,0,0,0.06)] active:scale-[0.98]
                  transition-all duration-150 flex flex-col"
     >
       <div
@@ -112,16 +112,16 @@ function NewWorkspaceCard({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       className="group text-left bg-zinc-50 border border-dashed border-zinc-300
-                 rounded-2xl p-5 hover:bg-white hover:border-zinc-400 hover:shadow-sm
+                 rounded-xl p-5 hover:bg-white hover:border-zinc-400 hover:shadow-sm
                  transition-all duration-150 flex flex-col"
     >
       <div
-        className="w-11 h-11 rounded-xl border-2 border-dashed border-zinc-300
+        className="w-11 h-11 rounded-lg border-2 border-dashed border-zinc-300
                       flex items-center justify-center mb-4 shrink-0
-                      group-hover:border-blue-400 transition-colors duration-150"
+                      group-hover:border-accent-400 transition-colors duration-150"
       >
         <svg
-          className="w-5 h-5 text-zinc-400 group-hover:text-blue-500
+          className="w-5 h-5 text-zinc-400 group-hover:text-accent-500
                         transition-colors duration-150"
           fill="none"
           stroke="currentColor"
@@ -280,7 +280,7 @@ function EmptyState({ navigate }: { navigate: (p: string) => void }) {
       </p>
       <button
         onClick={() => navigate('/workspace/new')}
-        className="mt-6 h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white
+        className="mt-6 h-9 px-5 bg-accent-500 hover:bg-accent-600 text-white
                    text-sm font-semibold rounded-lg transition-colors duration-150"
       >
         첫 워크스페이스 만들기
@@ -317,8 +317,8 @@ export default function WorkspaceListPage() {
           </div>
           <button
             onClick={() => navigate('/workspace/new')}
-            className="flex items-center gap-1.5 h-9 px-4 bg-blue-600 hover:bg-blue-700
-                       active:bg-blue-800 text-white text-sm font-semibold rounded-lg
+            className="flex items-center gap-1.5 h-9 px-4 bg-accent-500 hover:bg-accent-600
+                       active:bg-accent-700 text-white text-sm font-semibold rounded-lg
                        transition-colors duration-150 shrink-0"
           >
             <svg

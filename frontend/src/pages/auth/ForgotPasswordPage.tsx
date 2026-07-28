@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-6">
       <div className="w-full max-w-[420px] animate-fade-in">
         <div className="mb-8 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-accent-500 flex items-center justify-center">
             <svg
               className="w-4 h-4 text-white"
               fill="none"
@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
           <span className="font-semibold text-[17px] text-zinc-900 tracking-tight">Team Flow</span>
         </div>
 
-        <div className="bg-white border border-zinc-200 rounded-2xl p-8 shadow-sm">
+        <div className="bg-white border border-zinc-200 rounded-xl p-8 shadow-sm">
           <div className="mb-6">
             <h1 className="text-xl font-bold text-zinc-900 tracking-tight">비밀번호 재설정</h1>
             <p className="mt-1 text-sm text-zinc-500">
@@ -45,8 +45,8 @@ export default function ForgotPasswordPage() {
 
           {submitted ? (
             <div
-              className="flex items-start gap-2.5 p-3.5 bg-blue-50 border border-blue-200
-                          rounded-xl text-sm text-blue-700"
+              className="flex items-start gap-2.5 p-3.5 bg-accent-50 border border-accent-100
+                          rounded-lg text-sm text-accent-700"
             >
               <span>해당 이메일로 가입된 계정이 있다면 재설정 링크를 보내드렸습니다. 메일함을 확인해 주세요.</span>
             </div>
@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
                   placeholder="you@example.com"
                   className="w-full h-10 px-3.5 bg-white border border-zinc-300 rounded-lg
                              text-sm text-zinc-900 placeholder:text-zinc-400
-                             focus:outline-none focus:ring-2 focus:ring-blue-500
+                             focus:outline-none focus:ring-2 focus:ring-accent-500
                              focus:border-transparent transition-shadow duration-150"
                 />
               </div>
@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
                 type="submit"
                 disabled={isForgotPasswordPending}
                 className="mt-2 w-full h-10 flex items-center justify-center gap-2
-                           bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                           bg-accent-500 hover:bg-accent-600 active:bg-accent-700
                            disabled:opacity-50 disabled:cursor-not-allowed
                            text-white text-sm font-semibold rounded-lg transition-colors duration-150"
               >
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <p className="mt-5 text-center text-sm text-zinc-500">
-          <Link to="/login" className="text-blue-600 font-semibold hover:text-blue-700 transition-colors">
+          <Link to="/login" className="text-accent-600 font-semibold hover:text-accent-700 transition-colors">
             로그인으로 돌아가기
           </Link>
         </p>

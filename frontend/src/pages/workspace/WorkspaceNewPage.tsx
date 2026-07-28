@@ -14,11 +14,11 @@ function WorkspaceIntroPanel() {
       </p>
 
       {/* 일러스트: 팀 구조 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mb-8 shadow-xl">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-8 shadow-xl">
         {/* 워크스페이스 */}
         <div className="flex items-center gap-3 mb-4">
           <div
-            className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600
+            className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-accent-600
                           flex items-center justify-center text-white font-bold text-sm"
           >
             T
@@ -150,7 +150,7 @@ export default function WorkspaceNewPage() {
                   placeholder="예: 마케팅팀, Acme Corp, 사이드 프로젝트"
                   className="w-full h-12 px-4 bg-white border border-zinc-300 rounded-xl
                              text-base text-zinc-900 placeholder:text-zinc-400
-                             focus:outline-none focus:ring-2 focus:ring-blue-500
+                             focus:outline-none focus:ring-2 focus:ring-accent-500
                              focus:border-transparent transition-shadow duration-150"
                 />
                 <div className="flex items-center justify-between">
@@ -177,8 +177,8 @@ export default function WorkspaceNewPage() {
                                   transition-all duration-150
                                   ${
                                     name === n
-                                      ? 'bg-blue-600 text-white border-blue-600'
-                                      : 'bg-white text-zinc-600 border-zinc-300 hover:border-blue-400 hover:text-blue-600'
+                                      ? 'bg-accent-500 text-white border-accent-500'
+                                      : 'bg-white text-zinc-600 border-zinc-300 hover:border-accent-400 hover:text-accent-600'
                                   }`}
                     >
                       {n}
@@ -229,7 +229,7 @@ export default function WorkspaceNewPage() {
                   type="submit"
                   disabled={isPending || !name.trim()}
                   className="flex-1 h-11 flex items-center justify-center gap-2
-                             bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                             bg-accent-500 hover:bg-accent-600 active:bg-accent-700
                              disabled:opacity-50 disabled:cursor-not-allowed
                              text-white text-sm font-semibold rounded-xl
                              transition-colors duration-150"
@@ -294,7 +294,7 @@ export default function WorkspaceNewPage() {
             />
             <div
               className="absolute -bottom-20 -left-20 w-60 h-60
-                            bg-blue-600/10 rounded-full blur-3xl"
+                            bg-accent-500/10 rounded-full blur-3xl"
             />
           </div>
           <div className="relative z-10 pt-16 xl:pt-20 px-10 xl:px-14 pb-12">

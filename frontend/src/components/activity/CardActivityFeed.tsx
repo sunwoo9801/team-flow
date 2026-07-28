@@ -19,7 +19,7 @@ function ActivityItem({ activity }: { activity: CardActivity }) {
 
   return (
     <li className="flex gap-3 py-2">
-      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-medium text-indigo-700">
+      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-accent-100 flex items-center justify-center text-xs font-medium text-accent-700">
         {initials}
       </div>
       <div className="flex-1 min-w-0">

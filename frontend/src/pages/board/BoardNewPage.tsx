@@ -33,7 +33,7 @@ function KanbanPreview({ boardName }: { boardName: string }) {
       </p>
 
       {/* 창 프레임 */}
-      <div className="rounded-2xl border border-zinc-800 overflow-hidden shadow-2xl">
+      <div className="rounded-xl border border-zinc-800 overflow-hidden shadow-2xl">
         {/* 맥 스타일 툴바 */}
         <div className="bg-zinc-900 px-4 py-3 border-b border-zinc-800 flex items-center gap-3">
           <div className="flex gap-1.5">
@@ -193,7 +193,7 @@ export default function BoardNewPage() {
                   placeholder="예: Sprint 1, Q1 로드맵, 버그 트래커"
                   className="w-full h-12 px-4 bg-white border border-zinc-300 rounded-xl
                              text-base text-zinc-900 placeholder:text-zinc-400
-                             focus:outline-none focus:ring-2 focus:ring-blue-500
+                             focus:outline-none focus:ring-2 focus:ring-accent-500
                              focus:border-transparent transition-shadow duration-150"
                 />
                 <div className="flex items-center justify-between">
@@ -222,8 +222,8 @@ export default function BoardNewPage() {
                                   transition-all duration-150
                                   ${
                                     title === name
-                                      ? 'bg-blue-600 text-white border-blue-600'
-                                      : 'bg-white text-zinc-600 border-zinc-300 hover:border-blue-400 hover:text-blue-600'
+                                      ? 'bg-accent-500 text-white border-accent-500'
+                                      : 'bg-white text-zinc-600 border-zinc-300 hover:border-accent-400 hover:text-accent-600'
                                   }`}
                     >
                       {name}
@@ -247,7 +247,7 @@ export default function BoardNewPage() {
                   type="submit"
                   disabled={isPending || !title.trim()}
                   className="flex-1 h-11 flex items-center justify-center gap-2
-                             bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                             bg-accent-500 hover:bg-accent-600 active:bg-accent-700
                              disabled:opacity-50 disabled:cursor-not-allowed
                              text-white text-sm font-semibold rounded-xl
                              transition-colors duration-150"
@@ -308,7 +308,7 @@ export default function BoardNewPage() {
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div
               className="absolute -top-20 -right-20 w-80 h-80
-                            bg-blue-600/10 rounded-full blur-3xl"
+                            bg-accent-500/10 rounded-full blur-3xl"
             />
             <div
               className="absolute -bottom-20 -left-20 w-60 h-60

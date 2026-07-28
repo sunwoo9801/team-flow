@@ -63,7 +63,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-[420px] animate-fade-in">
         {/* 로고 */}
         <div className="mb-8 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-accent-500 flex items-center justify-center">
             <svg
               className="w-4 h-4 text-white"
               fill="none"
@@ -81,7 +81,7 @@ export default function RegisterPage() {
         </div>
 
         {/* 카드 */}
-        <div className="bg-white border border-zinc-200 rounded-2xl p-8 shadow-sm">
+        <div className="bg-white border border-zinc-200 rounded-xl p-8 shadow-sm">
           <div className="mb-6">
             <h1 className="text-xl font-bold text-zinc-900 tracking-tight">계정 만들기</h1>
             <p className="mt-1 text-sm text-zinc-500">Team Flow를 무료로 시작하세요</p>
@@ -90,7 +90,7 @@ export default function RegisterPage() {
           {errorMsg && (
             <div
               className="mb-5 flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-200
-                            rounded-xl text-sm text-red-700"
+                            rounded-lg text-sm text-red-700"
             >
               <svg className="w-4 h-4 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -117,7 +117,7 @@ export default function RegisterPage() {
                   placeholder={placeholder}
                   className="w-full h-10 px-3.5 bg-white border border-zinc-300 rounded-lg
                              text-sm text-zinc-900 placeholder:text-zinc-400
-                             focus:outline-none focus:ring-2 focus:ring-blue-500
+                             focus:outline-none focus:ring-2 focus:ring-accent-500
                              focus:border-transparent transition-shadow duration-150"
                 />
               </div>
@@ -127,7 +127,7 @@ export default function RegisterPage() {
               type="submit"
               disabled={isRegisterPending}
               className="mt-2 w-full h-10 flex items-center justify-center gap-2
-                         bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                         bg-accent-500 hover:bg-accent-600 active:bg-accent-700
                          disabled:opacity-50 disabled:cursor-not-allowed
                          text-white text-sm font-semibold rounded-lg transition-colors duration-150"
             >
@@ -161,7 +161,7 @@ export default function RegisterPage() {
           이미 계정이 있으신가요?{' '}
           <Link
             to="/login"
-            className="text-blue-600 font-semibold hover:text-blue-700 transition-colors"
+            className="text-accent-600 font-semibold hover:text-accent-700 transition-colors"
           >
             로그인
           </Link>

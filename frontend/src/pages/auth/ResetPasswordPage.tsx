@@ -41,7 +41,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-6">
       <div className="w-full max-w-[420px] animate-fade-in">
         <div className="mb-8 flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-accent-500 flex items-center justify-center">
             <svg
               className="w-4 h-4 text-white"
               fill="none"
@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
           <span className="font-semibold text-[17px] text-zinc-900 tracking-tight">Team Flow</span>
         </div>
 
-        <div className="bg-white border border-zinc-200 rounded-2xl p-8 shadow-sm">
+        <div className="bg-white border border-zinc-200 rounded-xl p-8 shadow-sm">
           {done ? (
             <>
               <div className="mb-6">
@@ -70,7 +70,7 @@ export default function ResetPasswordPage() {
               <button
                 onClick={() => navigate('/login')}
                 className="w-full h-10 flex items-center justify-center gap-2
-                           bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                           bg-accent-500 hover:bg-accent-600 active:bg-accent-700
                            text-white text-sm font-semibold rounded-lg transition-colors duration-150"
               >
                 로그인하러 가기
@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
           ) : !token ? (
             <div
               className="flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-200
-                          rounded-xl text-sm text-red-700"
+                          rounded-lg text-sm text-red-700"
             >
               유효하지 않은 링크입니다. 비밀번호 재설정을 다시 요청해 주세요.
             </div>
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
               {errorMsg && (
                 <div
                   className="mb-5 flex items-start gap-2.5 p-3.5 bg-red-50 border border-red-200
-                              rounded-xl text-sm text-red-700"
+                              rounded-lg text-sm text-red-700"
                 >
                   <span>{errorMsg}</span>
                 </div>
@@ -111,7 +111,7 @@ export default function ResetPasswordPage() {
                     placeholder="8자 이상"
                     className="w-full h-10 px-3.5 bg-white border border-zinc-300 rounded-lg
                                text-sm text-zinc-900 placeholder:text-zinc-400
-                               focus:outline-none focus:ring-2 focus:ring-blue-500
+                               focus:outline-none focus:ring-2 focus:ring-accent-500
                                focus:border-transparent transition-shadow duration-150"
                   />
                 </div>
@@ -126,7 +126,7 @@ export default function ResetPasswordPage() {
                     placeholder="동일하게 입력"
                     className="w-full h-10 px-3.5 bg-white border border-zinc-300 rounded-lg
                                text-sm text-zinc-900 placeholder:text-zinc-400
-                               focus:outline-none focus:ring-2 focus:ring-blue-500
+                               focus:outline-none focus:ring-2 focus:ring-accent-500
                                focus:border-transparent transition-shadow duration-150"
                   />
                 </div>
@@ -135,7 +135,7 @@ export default function ResetPasswordPage() {
                   type="submit"
                   disabled={isResetPasswordPending}
                   className="mt-2 w-full h-10 flex items-center justify-center gap-2
-                             bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+                             bg-accent-500 hover:bg-accent-600 active:bg-accent-700
                              disabled:opacity-50 disabled:cursor-not-allowed
                              text-white text-sm font-semibold rounded-lg transition-colors duration-150"
                 >
@@ -147,7 +147,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <p className="mt-5 text-center text-sm text-zinc-500">
-          <Link to="/login" className="text-blue-600 font-semibold hover:text-blue-700 transition-colors">
+          <Link to="/login" className="text-accent-600 font-semibold hover:text-accent-700 transition-colors">
             로그인으로 돌아가기
           </Link>
         </p>

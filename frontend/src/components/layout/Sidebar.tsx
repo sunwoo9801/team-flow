@@ -56,8 +56,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           aria-label="홈으로"
         >
           <div
-            className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shrink-0
-                          group-hover:bg-blue-500 transition-colors duration-150"
+            className="w-7 h-7 rounded-md bg-accent-500 flex items-center justify-center shrink-0
+                          group-hover:bg-accent-400 transition-colors duration-150"
           >
             <svg
               className="w-3.5 h-3.5 text-white"
@@ -177,7 +177,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     transition-colors duration-150
                     ${
                       isActive
-                        ? 'bg-blue-600/20 text-blue-400'
+                        ? 'bg-accent-500/20 text-accent-400'
                         : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
                     }
                   `}

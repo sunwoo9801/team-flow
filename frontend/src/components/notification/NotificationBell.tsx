@@ -80,14 +80,14 @@ export function NotificationBell() {
 
       {/* 알림 패널 */}
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
           {/* 헤더 */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <span className="text-sm font-medium text-gray-900">알림</span>
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllAsRead()}
-                className="text-xs text-indigo-600 hover:text-indigo-800 transition-colors"
+                className="text-xs text-accent-600 hover:text-accent-700 transition-colors"
               >
                 모두 읽음
               </button>
@@ -108,18 +108,18 @@ export function NotificationBell() {
                   key={n.id}
                   onClick={() => handleClickNotification(n)}
                   className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                    !n.isRead ? 'bg-indigo-50/50' : ''
+                    !n.isRead ? 'bg-accent-50/50' : ''
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     {/* 아바타 */}
-                    <div className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-medium text-indigo-700">
+                    <div className="flex-shrink-0 w-7 h-7 rounded-full bg-accent-100 flex items-center justify-center text-xs font-medium text-accent-700">
                       {n.actor.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-gray-700 leading-snug">{n.message}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] text-indigo-500 font-medium">
+                        <span className="text-[10px] text-accent-500 font-medium">
                           {TYPE_LABEL[n.type]}
                         </span>
                         <span className="text-[10px] text-gray-400">
@@ -128,7 +128,7 @@ export function NotificationBell() {
                       </div>
                     </div>
                     {!n.isRead && (
-                      <span className="flex-shrink-0 w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1" />
+                      <span className="flex-shrink-0 w-1.5 h-1.5 bg-accent-500 rounded-full mt-1" />
                     )}
                   </div>
                 </button>

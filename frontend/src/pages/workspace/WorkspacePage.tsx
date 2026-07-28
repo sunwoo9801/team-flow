@@ -36,7 +36,7 @@ function LeftMetaPanel({ ws }: { ws: NonNullable<ReturnType<typeof useWorkspace>
     >
       <div className="p-6 border-b border-zinc-100">
         <div
-          className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${from} ${to}
+          className={`w-14 h-14 rounded-xl bg-gradient-to-br ${from} ${to}
                           flex items-center justify-center shadow-sm mb-4`}
         >
           <span className="text-white font-bold text-2xl uppercase">{ws.name[0]}</span>
@@ -71,7 +71,7 @@ function LeftMetaPanel({ ws }: { ws: NonNullable<ReturnType<typeof useWorkspace>
           <div className="flex items-center gap-2">
             <span
               className="text-xs px-2.5 py-1 rounded-full font-semibold
-                             bg-blue-100 text-blue-700"
+                             bg-accent-100 text-accent-700"
             >
               {ws.members.find(() => true)?.role === 'admin' ? '관리자' : '멤버'}
             </span>
@@ -119,7 +119,7 @@ function MembersPanel({ ws }: { ws: NonNullable<ReturnType<typeof useWorkspace>[
                 className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full
                                 ${
                                   m.role === 'admin'
-                                    ? 'bg-blue-100 text-blue-700'
+                                    ? 'bg-accent-100 text-accent-700'
                                     : 'bg-zinc-100 text-zinc-500'
                                 }`}
               >
@@ -147,12 +147,12 @@ function InviteBanner({
 }) {
   return (
     <div
-      className="mx-6 lg:mx-8 mt-4 p-4 bg-blue-50 border border-blue-200
-                    rounded-2xl animate-fade-in shrink-0"
+      className="mx-6 lg:mx-8 mt-4 p-4 bg-accent-50 border border-accent-100
+                    rounded-xl animate-fade-in shrink-0"
     >
       <div className="flex items-center justify-between mb-2.5">
-        <p className="text-sm font-semibold text-blue-800">초대 링크 생성됨</p>
-        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-medium">
+        <p className="text-sm font-semibold text-accent-800">초대 링크 생성됨</p>
+        <span className="text-xs bg-accent-100 text-accent-600 px-2 py-0.5 rounded-full font-medium">
           7일 유효
         </span>
       </div>
@@ -160,7 +160,7 @@ function InviteBanner({
         <input
           readOnly
           value={link}
-          className="flex-1 h-9 px-3 bg-white border border-blue-200 rounded-lg
+          className="flex-1 h-9 px-3 bg-white border border-accent-200 rounded-lg
                           text-sm text-zinc-700 min-w-0 focus:outline-none"
         />
         <button
@@ -170,7 +170,7 @@ function InviteBanner({
                       ${
                         copied
                           ? 'bg-emerald-500 text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-accent-500 hover:bg-accent-600 text-white'
                       }`}
         >
           {copied ? '✓ 복사됨' : '복사'}
@@ -236,7 +236,7 @@ export default function WorkspacePage() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <div
-              className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${from} ${to}
+              className={`w-12 h-12 rounded-xl bg-gradient-to-br ${from} ${to}
                               flex items-center justify-center shadow-sm shrink-0`}
             >
               <span className="text-white font-bold text-xl uppercase">{ws.name[0]}</span>
@@ -276,7 +276,7 @@ export default function WorkspacePage() {
           <button
             onClick={handleInvite}
             disabled={inviting}
-            className="flex items-center gap-1.5 h-9 px-4 bg-blue-600 hover:bg-blue-700
+            className="flex items-center gap-1.5 h-9 px-4 bg-accent-500 hover:bg-accent-600
                        disabled:opacity-50 text-white text-sm font-semibold rounded-lg
                        transition-colors duration-150 shrink-0"
           >
@@ -318,7 +318,7 @@ export default function WorkspacePage() {
             <h2 className="text-sm font-semibold text-zinc-700 uppercase tracking-wider">보드</h2>
             <button
               onClick={() => navigate(`/workspace/${workspaceId}/board/new`)}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700
+              className="text-xs font-semibold text-accent-600 hover:text-accent-700
                          transition-colors duration-150"
             >
               + 새 보드
@@ -328,13 +328,13 @@ export default function WorkspacePage() {
           {ws.boards.length === 0 ? (
             <div
               className="flex flex-col items-center justify-center py-16
-                            bg-white border border-dashed border-zinc-300 rounded-2xl text-center"
+                            bg-white border border-dashed border-zinc-300 rounded-xl text-center"
             >
               <div className="text-4xl mb-3">📋</div>
               <p className="text-sm font-medium text-zinc-600">보드가 없습니다</p>
               <button
                 onClick={() => navigate(`/workspace/${workspaceId}/board/new`)}
-                className="mt-3 text-xs font-semibold text-blue-600 hover:text-blue-700
+                className="mt-3 text-xs font-semibold text-accent-600 hover:text-accent-700
                            transition-colors duration-150"
               >
                 첫 번째 보드 만들기 →
@@ -385,7 +385,7 @@ export default function WorkspacePage() {
               >
                 <div
                   className="w-full h-1 rounded-full bg-zinc-200 mb-4
-                                group-hover:bg-blue-200 transition-colors duration-150"
+                                group-hover:bg-accent-200 transition-colors duration-150"
                 />
                 <p
                   className="text-sm font-semibold text-zinc-500
@@ -403,7 +403,7 @@ export default function WorkspacePage() {
             <h2 className="text-sm font-semibold text-zinc-700 uppercase tracking-wider mb-4">
               팀 멤버
             </h2>
-            <div className="bg-white border border-zinc-200 rounded-2xl overflow-hidden">
+            <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
               {ws.members.map((m, idx) => (
                 <div
                   key={m.userId}
@@ -427,7 +427,7 @@ export default function WorkspacePage() {
                     className={`text-[10px] font-semibold px-2 py-0.5 rounded-full
                                     ${
                                       m.role === 'admin'
-                                        ? 'bg-blue-100 text-blue-700'
+                                        ? 'bg-accent-100 text-accent-700'
                                         : 'bg-zinc-100 text-zinc-500'
                                     }`}
                   >

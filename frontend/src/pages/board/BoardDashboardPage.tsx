@@ -30,7 +30,7 @@ const tooltipStyle = {
 
 function StatTile({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-2xl px-5 py-4">
+    <div className="bg-white border border-zinc-200 rounded-xl px-5 py-4">
       <div className="text-2xl font-bold text-zinc-900 leading-none">{value}</div>
       <div className="text-xs font-medium text-zinc-500 mt-1.5">{label}</div>
       {sub && <div className="text-[11px] text-zinc-400 mt-0.5">{sub}</div>}
@@ -40,7 +40,7 @@ function StatTile({ label, value, sub }: { label: string; value: string | number
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-2xl p-5">
+    <div className="bg-white border border-zinc-200 rounded-xl p-5">
       <h3 className="text-sm font-semibold text-zinc-700 mb-4">{title}</h3>
       {children}
     </div>
