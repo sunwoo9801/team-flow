@@ -11,8 +11,13 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
+  const isProd = process.env.NODE_ENV === 'production';
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    // 개발 환경에서는 Vite가 포트 충돌 시 3001, 3002...로 자동 전환하는 경우가 잦아
+    // localhost의 어떤 포트든 허용한다. 프로덕션에서는 FRONTEND_URL만 정확히 허용.
+    origin: isProd
+      ? (process.env.FRONTEND_URL ?? 'http://localhost:3000')
+      : /^http:\/\/localhost:\d+$/,
     credentials: true,
   });
   app.setGlobalPrefix('api');
