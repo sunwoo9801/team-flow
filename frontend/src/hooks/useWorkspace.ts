@@ -92,3 +92,84 @@ export function useAcceptInvite() {
     },
   });
 }
+
+export function useRenameWorkspace(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      const { data } = await api.patch<Workspace>(`/workspaces/${workspaceId}`, { name });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId] });
+    },
+  });
+}
+
+export function useDeleteWorkspace() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  return useMutation({
+    mutationFn: async (workspaceId: string) => {
+      await api.delete(`/workspaces/${workspaceId}`);
+      return workspaceId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      navigate('/workspace');
+    },
+  });
+}
+
+export function useRemoveMember(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      await api.delete(`/workspaces/${workspaceId}/members/${userId}`);
+      return userId;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId] }),
+  });
+}
+
+export function useChangeRole(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: 'admin' | 'member' }) => {
+      const { data } = await api.patch(`/workspaces/${workspaceId}/members/${userId}/role`, {
+        role,
+      });
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId] }),
+  });
+}
+
+export function useTransferOwnership(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (newOwnerId: string) => {
+      const { data } = await api.post(`/workspaces/${workspaceId}/transfer-ownership`, {
+        newOwnerId,
+      });
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workspaces', workspaceId] }),
+  });
+}
+
+export function useLeaveWorkspace() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  return useMutation({
+    mutationFn: async ({ workspaceId, userId }: { workspaceId: string; userId: string }) => {
+      await api.delete(`/workspaces/${workspaceId}/members/${userId}`);
+      return workspaceId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      navigate('/workspace');
+    },
+  });
+}

@@ -16,7 +16,7 @@ interface AuthResponse {
 }
 
 export function useAuth() {
-  const { user, setAuth, clearAuth } = useAuthStore();
+  const { user, setAuth, clearAuth, updateUser } = useAuthStore();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -74,6 +74,27 @@ export function useAuth() {
       api.post('/auth/reset-password', payload),
   });
 
+  const updateProfileMutation = useMutation({
+    mutationFn: async (payload: { name?: string }) => {
+      const { data } = await api.patch<User>('/auth/me', payload);
+      return data;
+    },
+    onSuccess: updated => {
+      updateUser(updated);
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: (payload: { currentPassword: string; newPassword: string }) =>
+      api.post('/auth/me/change-password', payload),
+    onSuccess: () => {
+      clearAuth();
+      queryClient.clear();
+      navigate('/login');
+    },
+  });
+
   return {
     user: meQuery.data ?? user,
     isLoading: meQuery.isLoading,
@@ -91,5 +112,11 @@ export function useAuth() {
     resetPassword: resetPasswordMutation.mutateAsync,
     isResetPasswordPending: resetPasswordMutation.isPending,
     resetPasswordError: resetPasswordMutation.error,
+    updateProfile: updateProfileMutation.mutateAsync,
+    isUpdateProfilePending: updateProfileMutation.isPending,
+    updateProfileError: updateProfileMutation.error,
+    changePassword: changePasswordMutation.mutateAsync,
+    isChangePasswordPending: changePasswordMutation.isPending,
+    changePasswordError: changePasswordMutation.error,
   };
 }

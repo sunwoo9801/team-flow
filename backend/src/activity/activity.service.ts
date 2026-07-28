@@ -85,7 +85,7 @@ export class ActivityService {
     const actionMap: Record<string, CardActionType> = {
       title: CardActionType.CARD_TITLE_UPDATED,
       description: CardActionType.CARD_DESCRIPTION_UPDATED,
-      assigneeId: CardActionType.CARD_ASSIGNEE_CHANGED,
+      priority: CardActionType.CARD_PRIORITY_CHANGED,
       dueDate: CardActionType.CARD_DUE_DATE_CHANGED,
     };
 

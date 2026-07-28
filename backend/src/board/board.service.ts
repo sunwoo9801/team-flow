@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CARD_INCLUDE } from '../prisma/card-include.constant';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';
@@ -43,10 +44,7 @@ export class BoardService {
           include: {
             cards: {
               orderBy: { position: 'asc' },
-              include: {
-                assignee: { select: { id: true, name: true, email: true } },
-                labels: { select: { id: true, boardId: true, name: true, color: true } },
-              },
+              include: CARD_INCLUDE,
             },
           },
         },

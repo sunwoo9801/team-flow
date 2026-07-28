@@ -4,7 +4,7 @@ export interface SnapshotCardData {
   description: string | null;
   position: number;
   dueDate: string | null;
-  assigneeId: string | null;
+  assigneeIds: string[];
   labelIds: string[];
 }
 

@@ -68,20 +68,20 @@ export class CommentService {
       }
     }
 
-    if (
-      card.assigneeId &&
-      card.assigneeId !== userId &&
-      !mentionedIds.includes(card.assigneeId)
-    ) {
+    const assigneeIds = card.assignees
+      .map(a => a.userId)
+      .filter(id => id !== userId && !mentionedIds.includes(id));
+
+    for (const assigneeId of assigneeIds) {
       const notification = await this.notificationService.create({
-        userId: card.assigneeId,
+        userId: assigneeId,
         actorId: userId,
         type: NotificationType.COMMENT_ADDED,
         message: `${actor?.name ?? '누군가'}님이 담당 카드에 댓글을 남겼습니다.`,
         link: `/workspace/${board.workspaceId}/board/${board.id}?card=${cardId}`,
         cardId,
       });
-      this.gateway.emitToUser(card.assigneeId, 'notification', notification);
+      this.gateway.emitToUser(assigneeId, 'notification', notification);
     }
 
     return comment;
@@ -135,7 +135,7 @@ export class CommentService {
   private async findCardWithBoard(cardId: string) {
     const card = await this.prisma.card.findUnique({
       where: { id: cardId },
-      include: { column: true },
+      include: { column: true, assignees: { select: { userId: true } } },
     });
     if (!card) throw new NotFoundException('카드를 찾을 수 없습니다.');
     return { ...card, boardId: card.column.boardId };

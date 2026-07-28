@@ -10,16 +10,31 @@ export interface Board {
   _count?: { columns: number };
 }
 
+export type CardPriority = 'none' | 'low' | 'medium' | 'high' | 'urgent';
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+  position: number;
+}
+
+export interface CardAssignee {
+  userId: string;
+  user: { id: string; name: string; email: string };
+}
+
 export interface Card {
   id: string;
   title: string;
   description: string | null;
   position: number;
   dueDate: string | null;
-  assigneeId: string | null;
+  priority: CardPriority;
   columnId: string;
-  assignee: { id: string; name: string; email: string } | null;
+  assignees: CardAssignee[];
   labels: Label[];
+  checklistItems: ChecklistItem[];
 }
 
 export interface Column {

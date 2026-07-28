@@ -5,6 +5,9 @@ import { CardActivityFeed } from '../activity/CardActivityFeed';
 import { CommentSection } from './CommentSection';
 import { AttachmentSection } from './AttachmentSection';
 import { LabelPicker } from './LabelPicker';
+import { AssigneePicker } from './AssigneePicker';
+import { PriorityPicker } from './PriorityPicker';
+import { ChecklistSection } from './ChecklistSection';
 import type { Card } from '../../hooks/useBoard';
 
 interface Props {
@@ -116,6 +119,14 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
               />
             </section>
 
+            {/* 체크리스트 */}
+            <section>
+              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                체크리스트
+              </h3>
+              <ChecklistSection boardId={boardId} cardId={card.id} items={card.checklistItems} />
+            </section>
+
             {/* 댓글 */}
             <section>
               <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
@@ -143,6 +154,17 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
 
           {/* 오른쪽: 사이드바 */}
           <div className="w-52 shrink-0 border-l border-zinc-100 px-4 py-5 flex flex-col gap-6 overflow-y-auto bg-zinc-50/50">
+            {/* 우선순위 */}
+            <section>
+              <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                우선순위
+              </h3>
+              <PriorityPicker
+                value={card.priority}
+                onChange={priority => updateCard({ cardId: card.id, priority })}
+              />
+            </section>
+
             {/* 라벨 */}
             <section>
               <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
@@ -156,28 +178,12 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
               <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
                 담당자
               </h3>
-              {/* 현재 담당자 표시 */}
-              {card.assignee && (
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-accent-500 flex items-center justify-center
-                                  text-white text-[10px] font-bold uppercase">
-                    {card.assignee.name[0]}
-                  </div>
-                  <span className="text-[13px] text-zinc-700 truncate">{card.assignee.name}</span>
-                </div>
-              )}
-              <select
-                value={card.assigneeId ?? ''}
-                onChange={e => updateCard({ cardId: card.id, assigneeId: e.target.value || null })}
-                className="w-full text-[13px] text-zinc-600 bg-white border border-zinc-200 rounded-md
-                           px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent-100
-                           focus:border-accent-400 transition-colors cursor-pointer"
-              >
-                <option value="">담당자 없음</option>
-                {members.map(m => (
-                  <option key={m.userId} value={m.userId}>{m.user.name}</option>
-                ))}
-              </select>
+              <AssigneePicker
+                boardId={boardId}
+                cardId={card.id}
+                cardAssignees={card.assignees}
+                members={members}
+              />
             </section>
 
             {/* 마감일 */}

@@ -11,6 +11,7 @@ import { NotificationModule } from './notification/notification.module';
 import { CommentModule } from './comment/comment.module';
 import { AttachmentModule } from './attachment/attachment.module';
 import { LabelModule } from './label/label.module';
+import { ChecklistModule } from './checklist/checklist.module';
 import { SnapshotModule } from './snapshot/snapshot.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 
@@ -32,6 +33,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     CommentModule,
     AttachmentModule,
     LabelModule,
+    ChecklistModule,
     SnapshotModule,
     DashboardModule,
   ],

@@ -31,6 +31,8 @@ import { BoardFilterBar, UNASSIGNED, type DueFilter } from '../../components/boa
 import { FilteredCardCount } from '../../components/board/FilteredCardCount';
 import { HistoryPanel } from '../../components/board/HistoryPanel';
 import { CursorOverlay } from '../../components/board/CursorOverlay';
+import { ListView } from '../../components/board/ListView';
+import { CalendarView } from '../../components/board/CalendarView';
 import { useAuthStore } from '../../store/auth.store';
 import { highlightMatch } from '../../utils/highlightText';
 import type { Column, Card } from '../../hooks/useBoard';
@@ -46,7 +48,7 @@ function matchesSearch(card: Card, query: string): boolean {
 
 function matchesAssignee(card: Card, selected: string[]): boolean {
   if (selected.length === 0) return true;
-  if (card.assigneeId) return selected.includes(card.assigneeId);
+  if (card.assignees.length > 0) return card.assignees.some(a => selected.includes(a.userId));
   return selected.includes(UNASSIGNED);
 }
 
@@ -54,6 +56,13 @@ function matchesLabels(card: Card, selected: string[]): boolean {
   if (selected.length === 0) return true;
   return card.labels.some(l => selected.includes(l.id));
 }
+
+type BoardView = 'kanban' | 'list' | 'calendar';
+const VIEW_TABS: { value: BoardView; label: string }[] = [
+  { value: 'kanban', label: '칸반' },
+  { value: 'list', label: '리스트' },
+  { value: 'calendar', label: '캘린더' },
+];
 
 function matchesDue(dueDate: string | null, filter: DueFilter): boolean {
   if (filter === 'all') return true;
@@ -95,7 +104,7 @@ function BoardStats({ columns }: { columns: Column[] }) {
   const overdueCards = columns
     .flatMap(c => c.cards)
     .filter(c => c.dueDate && new Date(c.dueDate) < new Date()).length;
-  const assignedCards = columns.flatMap(c => c.cards).filter(c => c.assigneeId).length;
+  const assignedCards = columns.flatMap(c => c.cards).filter(c => c.assignees.length > 0).length;
 
   const items = [
     { label: '전체 카드', value: totalCards, color: 'text-zinc-800' },
@@ -202,7 +211,7 @@ function SortableCard({
         {highlightMatch(card.title, searchQuery)}
       </p>
 
-      {(card.assignee || card.dueDate) && (
+      {(card.assignees.length > 0 || card.dueDate) && (
         <div className="flex items-center justify-between mt-2.5 gap-2">
           {card.dueDate && (
             <span
@@ -226,13 +235,26 @@ function SortableCard({
               })}
             </span>
           )}
-          {card.assignee && (
-            <div
-              className="ml-auto w-5 h-5 rounded-full bg-accent-500 flex items-center
-                            justify-center text-white text-[9px] font-bold uppercase shrink-0"
-              title={card.assignee.name}
-            >
-              {card.assignee.name[0]}
+          {card.assignees.length > 0 && (
+            <div className="ml-auto flex items-center -space-x-1.5 shrink-0">
+              {card.assignees.slice(0, 3).map(({ userId, user }) => (
+                <div
+                  key={userId}
+                  className="w-5 h-5 rounded-full border-2 border-white bg-accent-500 flex items-center
+                             justify-center text-white text-[9px] font-bold uppercase"
+                  title={user.name}
+                >
+                  {user.name[0]}
+                </div>
+              ))}
+              {card.assignees.length > 3 && (
+                <div
+                  className="w-5 h-5 rounded-full border-2 border-white bg-zinc-300 flex items-center
+                             justify-center text-zinc-600 text-[8px] font-bold"
+                >
+                  +{card.assignees.length - 3}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -452,6 +474,16 @@ export default function BoardPage() {
     },
     [sendCursor, user?.name]
   );
+
+  // ── 뷰 전환 ──
+  const view = (searchParams.get('view') as BoardView | null) ?? 'kanban';
+  const setView = (next: BoardView) =>
+    setSearchParams(prev => {
+      const nextParams = new URLSearchParams(prev);
+      if (next === 'kanban') nextParams.delete('view');
+      else nextParams.set('view', next);
+      return nextParams;
+    });
 
   // ── 필터 & 검색 ──
   const searchQuery = searchParams.get('q') ?? '';
@@ -674,6 +706,24 @@ export default function BoardPage() {
 
           {/* 우측 액션 */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* 뷰 전환 탭 */}
+            <div className="flex items-center h-7 p-0.5 bg-zinc-100 rounded-md">
+              {VIEW_TABS.map(tab => (
+                <button
+                  key={tab.value}
+                  onClick={() => setView(tab.value)}
+                  className={`h-6 px-2.5 text-[11px] font-medium rounded transition-colors duration-150
+                              ${
+                                view === tab.value
+                                  ? 'bg-white text-zinc-800 shadow-sm'
+                                  : 'text-zinc-500 hover:text-zinc-700'
+                              }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
             {/* 컬럼 색상 도트 목록 (xl+) */}
             <div className="hidden xl:flex items-center gap-1.5">
               {board.columns.map((col, idx) => (
@@ -721,7 +771,25 @@ export default function BoardPage() {
         />
       </div>
 
+      {/* ── 리스트 뷰 ── */}
+      {view === 'list' && (
+        <div className="flex-1 overflow-y-auto">
+          <ListView columns={filteredColumns} onCardClick={handleCardClick} />
+        </div>
+      )}
+
+      {/* ── 캘린더 뷰 ── */}
+      {view === 'calendar' && (
+        <div className="flex-1 overflow-hidden">
+          <CalendarView
+            cards={filteredColumns.flatMap(c => c.cards)}
+            onCardClick={handleCardClick}
+          />
+        </div>
+      )}
+
       {/* ── 칸반 스크롤 영역 ── */}
+      {view === 'kanban' && (
       <div className="flex-1 overflow-x-auto overflow-y-hidden">
         <DndContext
           sensors={sensors}
@@ -831,6 +899,7 @@ export default function BoardPage() {
           </DragOverlay>
         </DndContext>
       </div>
+      )}
     </div>
   );
 }

@@ -1,10 +1,13 @@
 import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CARD_INCLUDE } from '../prisma/card-include.constant';
 import { BoardService } from '../board/board.service';
+import { WorkspaceService } from '../workspace/workspace.service';
 import { BoardGateway } from '../gateway/board.gateway';
 import { ActivityService } from '../activity/activity.service';
 import { NotificationService } from '../notification/notification.service';
 import { parseMentionedUserIds } from '../notification/mention.parser';
+import { CardActionType } from '@prisma/client';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
 import { MoveCardDto } from './dto/move-card.dto';
@@ -17,6 +20,9 @@ export class CardService {
 
     @Inject(BoardService)
     private readonly boardService: BoardService,
+
+    @Inject(WorkspaceService)
+    private readonly workspaceService: WorkspaceService,
 
     @Inject(BoardGateway)
     private readonly gateway: BoardGateway,
@@ -42,13 +48,10 @@ export class CardService {
         description: dto.description,
         position,
         columnId,
-        assigneeId: dto.assigneeId ?? null,
+        priority: dto.priority ?? 'none',
         dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
       },
-      include: {
-        assignee: { select: { id: true, name: true, email: true } },
-        labels: { select: { id: true, boardId: true, name: true, color: true } },
-      },
+      include: CARD_INCLUDE,
     });
 
     await this.activityService.logCardCreated(card.id, userId, card.title);
@@ -59,19 +62,6 @@ export class CardService {
       userId,
     });
 
-    if (dto.assigneeId && dto.assigneeId !== userId) {
-      const actor = await this.prisma.user.findUnique({ where: { id: userId } });
-      const notification = await this.notificationService.create({
-        userId: dto.assigneeId,
-        actorId: userId,
-        type: 'CARD_ASSIGNED',
-        message: `${actor?.name ?? '누군가'}님이 회원님을 카드 담당자로 지정했습니다.`,
-        link: `/workspace/${board.workspaceId}/board/${board.id}?card=${card.id}`,
-        cardId: card.id,
-      });
-      this.gateway.emitToUser(dto.assigneeId, 'notification', notification);
-    }
-
     return card;
   }
 
@@ -79,20 +69,14 @@ export class CardService {
     return this.prisma.card.findMany({
       where: { columnId },
       orderBy: { position: 'asc' },
-      include: {
-        assignee: { select: { id: true, name: true, email: true } },
-        labels: { select: { id: true, boardId: true, name: true, color: true } },
-      },
+      include: CARD_INCLUDE,
     });
   }
 
   async findOne(cardId: string) {
     const card = await this.prisma.card.findUnique({
       where: { id: cardId },
-      include: {
-        assignee: { select: { id: true, name: true, email: true } },
-        labels: { select: { id: true, boardId: true, name: true, color: true } },
-      },
+      include: CARD_INCLUDE,
     });
     if (!card) throw new NotFoundException('카드를 찾을 수 없습니다.');
     return card;
@@ -108,21 +92,18 @@ export class CardService {
       data: {
         ...(dto.title !== undefined && { title: dto.title }),
         ...(dto.description !== undefined && { description: dto.description }),
-        ...(dto.assigneeId !== undefined && { assigneeId: dto.assigneeId }),
+        ...(dto.priority !== undefined && { priority: dto.priority }),
         ...(dto.dueDate !== undefined && {
           dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
         }),
       },
-      include: {
-        assignee: { select: { id: true, name: true, email: true } },
-        labels: { select: { id: true, boardId: true, name: true, color: true } },
-      },
+      include: CARD_INCLUDE,
     });
 
     const trackableFields = [
       'title',
       'description',
-      'assigneeId',
+      'priority',
       'dueDate',
     ] as const;
     for (const field of trackableFields) {
@@ -138,23 +119,6 @@ export class CardService {
           dto[field],
         );
       }
-    }
-
-    if (
-      dto.assigneeId &&
-      dto.assigneeId !== existing.assigneeId &&
-      dto.assigneeId !== userId
-    ) {
-      const actor = await this.prisma.user.findUnique({ where: { id: userId } });
-      const notification = await this.notificationService.create({
-        userId: dto.assigneeId,
-        actorId: userId,
-        type: 'CARD_ASSIGNED',
-        message: `${actor?.name ?? '누군가'}님이 회원님을 카드 담당자로 지정했습니다.`,
-        link: `/workspace/${board.workspaceId}/board/${board.id}?card=${cardId}`,
-        cardId,
-      });
-      this.gateway.emitToUser(dto.assigneeId, 'notification', notification);
     }
 
     if (dto.description) {
@@ -180,6 +144,82 @@ export class CardService {
       payload: updated,
       userId,
     });
+    return updated;
+  }
+
+  async attachAssignee(userId: string, cardId: string, targetUserId: string) {
+    const card = await this.findCard(cardId);
+    const col = await this.findColumnWithBoard(card.columnId);
+    const board = await this.boardService.findOne(userId, col.boardId);
+    await this.workspaceService.assertMember(board.workspaceId, targetUserId);
+
+    await this.prisma.cardAssignee.upsert({
+      where: { cardId_userId: { cardId, userId: targetUserId } },
+      create: { cardId, userId: targetUserId },
+      update: {},
+    });
+
+    const updated = await this.prisma.card.findUniqueOrThrow({
+      where: { id: cardId },
+      include: CARD_INCLUDE,
+    });
+
+    await this.activityService.create({
+      cardId,
+      userId,
+      actionType: CardActionType.ASSIGNEE_ADDED,
+      metadata: { extra: { assigneeId: targetUserId } },
+    });
+
+    if (targetUserId !== userId) {
+      const actor = await this.prisma.user.findUnique({ where: { id: userId } });
+      const notification = await this.notificationService.create({
+        userId: targetUserId,
+        actorId: userId,
+        type: 'CARD_ASSIGNED',
+        message: `${actor?.name ?? '누군가'}님이 회원님을 카드 담당자로 지정했습니다.`,
+        link: `/workspace/${board.workspaceId}/board/${board.id}?card=${cardId}`,
+        cardId,
+      });
+      this.gateway.emitToUser(targetUserId, 'notification', notification);
+    }
+
+    this.gateway.broadcastToBoard(board.id, {
+      type: 'card:updated',
+      payload: updated,
+      userId,
+    });
+
+    return updated;
+  }
+
+  async detachAssignee(userId: string, cardId: string, targetUserId: string) {
+    const card = await this.findCard(cardId);
+    const col = await this.findColumnWithBoard(card.columnId);
+    const board = await this.boardService.findOne(userId, col.boardId);
+
+    await this.prisma.cardAssignee.deleteMany({
+      where: { cardId, userId: targetUserId },
+    });
+
+    const updated = await this.prisma.card.findUniqueOrThrow({
+      where: { id: cardId },
+      include: CARD_INCLUDE,
+    });
+
+    await this.activityService.create({
+      cardId,
+      userId,
+      actionType: CardActionType.ASSIGNEE_REMOVED,
+      metadata: { extra: { assigneeId: targetUserId } },
+    });
+
+    this.gateway.broadcastToBoard(board.id, {
+      type: 'card:updated',
+      payload: updated,
+      userId,
+    });
+
     return updated;
   }
 

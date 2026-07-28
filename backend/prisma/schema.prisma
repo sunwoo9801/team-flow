@@ -16,7 +16,8 @@ model User {
   refreshToken         String?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
-  assignedCards        Card[]            @relation("CardAssignee")
+  avatarKey            String?
+  cardAssignments      CardAssignee[]    @relation("CardAssignees")
   workspaceMemberships WorkspaceMember[]
   ownedWorkspaces      Workspace[]       @relation("WorkspaceOwner")
 
@@ -104,28 +105,57 @@ model Column {
 }
 
 model Card {
-  id          String    @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   description String?
   /// Column 내 카드 순서 — Lexicographic Float 방식
   position    Float
   dueDate     DateTime?
-  assigneeId  String?
+  priority    CardPriority @default(none)
   columnId    String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  assignee    User?     @relation("CardAssignee", fields: [assigneeId], references: [id])
-  column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  column      Column       @relation(fields: [columnId], references: [id], onDelete: Cascade)
 
   @@index([columnId, position])
-  @@index([assigneeId])
   @@map("cards")
 
-  activities CardActivity[]
-  notifications Notification[]
-  comments Comment[]
-  attachments Attachment[]
-  labels Label[]
+  activities     CardActivity[]
+  notifications  Notification[]
+  comments       Comment[]
+  attachments    Attachment[]
+  labels         Label[]
+  assignees      CardAssignee[]
+  checklistItems ChecklistItem[]
+}
+
+model CardAssignee {
+  cardId     String
+  userId     String
+  assignedAt DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation("CardAssignees", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, userId])
+  @@index([userId])
+  @@map("card_assignees")
+}
+
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  cardId    String
+  text      String
+  done      Boolean  @default(false)
+  /// Card 내 항목 순서 — Lexicographic Float 방식
+  position  Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId, position])
+  @@map("checklist_items")
 }
 
 model InviteToken {
@@ -152,6 +182,14 @@ enum MemberRole {
   member
 }
 
+enum CardPriority {
+  none
+  low
+  medium
+  high
+  urgent
+}
+
 enum CardActionType {
   CARD_CREATED
   CARD_TITLE_UPDATED
@@ -166,6 +204,12 @@ enum CardActionType {
   ATTACHMENT_DELETED
   LABEL_ADDED
   LABEL_REMOVED
+  CARD_PRIORITY_CHANGED
+  CHECKLIST_ITEM_ADDED
+  CHECKLIST_ITEM_REMOVED
+  CHECKLIST_ITEM_TOGGLED
+  ASSIGNEE_ADDED
+  ASSIGNEE_REMOVED
 }
 
 model CardActivity {

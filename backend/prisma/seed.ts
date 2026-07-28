@@ -76,48 +76,56 @@ async function main() {
 
   console.log('✅ 컬럼 생성: Todo / In Progress / Done');
 
-  await prisma.card.createMany({
-    data: [
-      {
+  await Promise.all([
+    prisma.card.create({
+      data: {
         title: '프로젝트 초기 세팅',
         description: '모노레포 구조, Docker, CI 파이프라인 설정',
         position: 1.0,
         columnId: colDone.id,
-        assigneeId: alice.id,
+        assignees: { create: { userId: alice.id } },
       },
-      {
+    }),
+    prisma.card.create({
+      data: {
         title: 'DB 스키마 설계',
         description: 'Prisma 7 기반 ERD 설계 및 마이그레이션',
         position: 2.0,
         columnId: colDone.id,
-        assigneeId: alice.id,
+        assignees: { create: { userId: alice.id } },
       },
-      {
+    }),
+    prisma.card.create({
+      data: {
         title: 'JWT 인증 구현',
         description: 'Access Token + Refresh Token 전략',
         position: 1.0,
         columnId: colInProgress.id,
-        assigneeId: bob.id,
+        assignees: { create: { userId: bob.id } },
         dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       },
-      {
+    }),
+    prisma.card.create({
+      data: {
         title: '보드 CRUD API',
         description: 'Board, Column, Card REST API 엔드포인트',
         position: 1.0,
         columnId: colTodo.id,
-        assigneeId: bob.id,
+        assignees: { create: { userId: bob.id } },
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       },
-      {
+    }),
+    prisma.card.create({
+      data: {
         title: '실시간 Socket.io 연동',
         description: '카드 이동 시 실시간 동기화',
         position: 2.0,
         columnId: colTodo.id,
-        assigneeId: alice.id,
+        assignees: { create: { userId: alice.id } },
         dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       },
-    ],
-  });
+    }),
+  ]);
 
   console.log('✅ 카드 5개 생성 완료');
   console.log('\n🎉 Seed 완료!');

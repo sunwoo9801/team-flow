@@ -84,4 +84,64 @@ export class WorkspaceService {
       throw new ForbiddenException('관리자 권한이 필요합니다.');
     return member;
   }
+
+  async rename(workspaceId: string, userId: string, name: string) {
+    await this.assertAdmin(workspaceId, userId);
+    return this.prisma.workspace.update({
+      where: { id: workspaceId },
+      data: { name },
+    });
+  }
+
+  async removeMember(workspaceId: string, actorId: string, targetUserId: string) {
+    const ws = await this.prisma.workspace.findUnique({ where: { id: workspaceId } });
+    if (!ws) throw new NotFoundException();
+    if (targetUserId === ws.ownerId) {
+      throw new ForbiddenException(
+        '소유자는 소유권을 이전한 후에만 워크스페이스를 탈퇴하거나 제거될 수 있습니다.',
+      );
+    }
+    if (actorId === targetUserId) {
+      await this.assertMember(workspaceId, actorId);
+    } else {
+      await this.assertAdmin(workspaceId, actorId);
+    }
+    await this.prisma.workspaceMember.delete({
+      where: { workspaceId_userId: { workspaceId, userId: targetUserId } },
+    });
+  }
+
+  async changeRole(
+    workspaceId: string,
+    actorId: string,
+    targetUserId: string,
+    role: MemberRole,
+  ) {
+    await this.assertAdmin(workspaceId, actorId);
+    return this.prisma.workspaceMember.update({
+      where: { workspaceId_userId: { workspaceId, userId: targetUserId } },
+      data: { role },
+    });
+  }
+
+  async transferOwnership(workspaceId: string, actorId: string, newOwnerId: string) {
+    const ws = await this.prisma.workspace.findUnique({ where: { id: workspaceId } });
+    if (!ws) throw new NotFoundException();
+    if (ws.ownerId !== actorId) {
+      throw new ForbiddenException('소유자만 소유권을 이전할 수 있습니다.');
+    }
+    await this.assertMember(workspaceId, newOwnerId);
+
+    const [workspace] = await this.prisma.$transaction([
+      this.prisma.workspace.update({
+        where: { id: workspaceId },
+        data: { ownerId: newOwnerId },
+      }),
+      this.prisma.workspaceMember.update({
+        where: { workspaceId_userId: { workspaceId, userId: newOwnerId } },
+        data: { role: MemberRole.admin },
+      }),
+    ]);
+    return workspace;
+  }
 }

@@ -14,6 +14,7 @@ interface AuthState {
   accessToken: string | null;
   setAuth: (user: User, accessToken: string) => void;
   setAccessToken: (token: string) => void;
+  updateUser: (user: User) => void;
   clearAuth: () => void;
 }
 
@@ -30,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
         sessionStorage.setItem('access_token', token);
         set({ accessToken: token });
       },
+      updateUser: user => set({ user }),
       clearAuth: () => {
         sessionStorage.removeItem('access_token');
         set({ user: null, accessToken: null });

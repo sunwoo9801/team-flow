@@ -166,6 +166,43 @@ export class AuthService {
     await this.mailer.sendPasswordResetEmail(user.email, resetUrl);
   }
 
+  async updateProfile(userId: string, name?: string) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { ...(name !== undefined && { name }) },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        provider: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.password) {
+      throw new BadRequestException('Google 계정은 비밀번호를 변경할 수 없습니다.');
+    }
+
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) {
+      throw new UnauthorizedException('현재 비밀번호가 일치하지 않습니다.');
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      // 비밀번호 변경 시 기존 세션(refresh token)도 함께 무효화
+      data: { password: hashed, refreshToken: null },
+    });
+  }
+
   async resetPassword(rawToken: string, newPassword: string): Promise<void> {
     const tokenHash = createHash('sha256').update(rawToken).digest('hex');
     const resetToken = await this.prisma.passwordResetToken.findUnique({

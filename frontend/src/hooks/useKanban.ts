@@ -100,10 +100,32 @@ export function useUpdateCard(boardId: string) {
       cardId: string;
       title?: string;
       description?: string;
-      assigneeId?: string | null;
+      priority?: Card['priority'];
       dueDate?: string | null;
     }) => {
       const { data } = await api.patch<Card>(`/cards/${cardId}`, payload);
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['boards', boardId] }),
+  });
+}
+
+export function useAttachAssignee(boardId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ cardId, userId }: { cardId: string; userId: string }) => {
+      const { data } = await api.post<Card>(`/cards/${cardId}/assignees/${userId}`);
+      return data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['boards', boardId] }),
+  });
+}
+
+export function useDetachAssignee(boardId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ cardId, userId }: { cardId: string; userId: string }) => {
+      const { data } = await api.delete<Card>(`/cards/${cardId}/assignees/${userId}`);
       return data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['boards', boardId] }),

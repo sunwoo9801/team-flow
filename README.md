@@ -34,7 +34,7 @@
 
 ## 프로젝트 소개
 
-Team Flow는 팀 단위 업무를 시각적으로 관리할 수 있는 칸반 기반 협업 툴입니다. Trello/Jira에서 영감을 받아, 실시간 동기화·이벤트 소싱 기반 활동 로그·라이브 커서 공유·S3 파일 업로드 등 실무 SaaS에서 요구되는 기능들을 백엔드(NestJS)와 프론트엔드(React) 양쪽 모두 직접 설계·구현했습니다.
+Team Flow는 팀 단위 업무를 관리하는 협업 툴입니다. Linear/Jira에서 영감을 받아, 칸반·리스트·캘린더 세 가지 뷰로 같은 작업을 다르게 조회하고, 우선순위·체크리스트·다중 담당자로 카드를 세밀하게 관리하며, 워크스페이스 권한(소유자/관리자/멤버) 체계와 설정 화면까지 갖춘 실무형 프로젝트 관리 도구를 지향했습니다. 실시간 동기화·이벤트 소싱 기반 활동 로그·라이브 커서 공유·S3 파일 업로드처럼 난이도 있는 기능들도 백엔드(NestJS)와 프론트엔드(React) 양쪽 모두 직접 설계·구현했습니다.
 
 현재는 로컬 Docker 환경 기준으로 완성된 프로젝트이며, 배포 파이프라인은 아직 구성 전입니다 (아래 [로컬 개발 환경 설정](#로컬-개발-환경-설정) 참고). 대신 GitHub Actions 기반 E2E 테스트 CI가 매 push/PR마다 로그인 → 보드 생성 → 드래그 앤 드롭 플로우를 자동 검증합니다.
 
@@ -48,12 +48,15 @@ Team Flow는 팀 단위 업무를 시각적으로 관리할 수 있는 칸반 �
 - Google OAuth2 소셜 로그인
 - JWT Access Token + Refresh Token 이중 인증 구조 (Refresh Token은 bcrypt 해시로 DB에 저장, 로테이션)
 - HttpOnly 쿠키로 Refresh Token 관리 (XSS 방어)
+- 이메일 기반 비밀번호 재설정 — Nodemailer(SMTP)로 재설정 링크 발송, 토큰은 원문이 아닌 SHA-256 해시로 저장·30분 후 만료·1회성 소진
+- 계정 설정에서 로그인 상태로 이름 변경 / 현재 비밀번호 검증 후 변경 (Google 계정은 비밀번호 변경 UI 자체를 숨김 처리)
 
 ### 워크스페이스 (Workspace)
 
-- 워크스페이스 생성·수정·삭제
+- 워크스페이스 생성·이름 변경·삭제
 - 초대 링크(Invite Token) 발급 — 만료 시간·사용 여부 관리
-- 역할 기반 접근 제어 (admin / member)
+- 역할 기반 접근 제어 (admin / member) + 소유자(owner) 개념 분리 — 소유자는 `Workspace.ownerId`로 별도 추적되어 admin 역할과 독립적으로 소유권 이전 가능
+- 워크스페이스 설정 페이지 — 멤버 역할 변경, 멤버 제거/탈퇴(본인 제거와 타인 제거를 하나의 엔드포인트로 통합, 액터에 따라 권한 분기), 소유권 이전, 워크스페이스 삭제(소유자 전용)
 
 ### 칸반 보드 (Kanban Board)
 
@@ -82,12 +85,25 @@ Team Flow는 팀 단위 업무를 시각적으로 관리할 수 있는 칸반 �
 - 첨부파일: **AWS S3 presigned URL 3단계 업로드** (① presign 발급 → ② 브라우저가 S3에 직접 PUT → ③ 서버에 메타데이터 확정 등록), 다운로드는 presigned GET URL 발급 방식으로 비공개 버킷에서도 안전하게 서비스
 - 모든 변경은 카드 Activity 로그에 자동 기록되고 Socket으로 실시간 반영
 
+### 카드 상세 강화 — 우선순위 · 체크리스트 · 다중 담당자
+
+- **우선순위** 5단계(없음/낮음/보통/높음/긴급) — 색상 코드로 칸반 카드·리스트 뷰·캘린더 뷰 전반에 일관되게 표시
+- **체크리스트** — 카드 안에 하위 항목을 추가·완료 토글·인라인 텍스트 수정·삭제, 진행률 바로 완료 비율 시각화
+- **다중 담당자** — 기존 카드당 담당자 1명 제한을 명시적 조인 테이블(`CardAssignee`)로 교체해 여러 명을 배정 가능 (칸반 카드에는 스택형 아바타 + `+N` 초과 표시)
+- 세 항목 모두 카드 Activity 로그·Socket 실시간 브로드캐스트·대시보드 집계에 동일하게 반영됨 (아래 [기술적 의사결정](#기술적-의사결정) 참고)
+
 ### 보드 필터 & 검색
 
 - `?q=&assignee=&due=&label=` URL 쿼리 파라미터로 필터 상태 관리 (새로고침/공유해도 유지)
 - 검색어 300ms 디바운스 + 제목·설명 매칭 하이라이트
 - 담당자 다중 선택(미배정 포함), 마감일 5종(전체/기한초과/오늘/이번 주/없음), 라벨 다중 선택 복합 필터
 - 클라이언트 사이드 `useMemo` 필터링 + 필터링된 카드 수 표시
+
+### 보드 뷰 — 칸반 · 리스트 · 캘린더
+
+- 하나의 데이터셋(필터링된 카드 목록)을 세 가지 방식으로 전환해서 확인 — 칸반(드래그 앤 드롭), 리스트(테이블형 일람), 캘린더(마감일 기준 월간 그리드)
+- 뷰 상태는 검색/필터와 동일하게 URL 쿼리 파라미터(`?view=`)로 관리 — 새로고침·링크 공유 시에도 유지되고, 뷰 전환 시 필터링 로직을 중복 구현하지 않음
+- 캘린더 뷰는 별도 날짜 라이브러리 없이 네이티브 `Date` 연산만으로 월 그리드를 구성 (의존성 최소화), 마감일이 없는 카드는 "마감일 미정" 사이드 목록으로 분리
 
 ### 라벨 시스템
 
@@ -224,7 +240,9 @@ User ──< WorkspaceMember >── Workspace ──< Board ──< Column ─�
   ├──< CardActivity >───────────────────────────────────────────┤
   ├──< Notification (received/sent) >────────────────────────────┤
   ├──< Comment >──────────────────────────────────────────────────┤
-  └──< Attachment >─────────────────────────────────────────────── Card
+  ├──< Attachment >─────────────────────────────────────────────── Card
+  ├──< CardAssignee >───(명시적 M:N, assignedAt 포함)──────────────┤
+  └──< ChecklistItem (Card 종속, 1:N) ─────────────────────────────┘
 ```
 
 ### 핵심 설계 포인트
@@ -262,6 +280,21 @@ model Label {
 }
 ```
 
+**CardAssignee — 명시적 조인 테이블 (다중 담당자)**
+
+라벨과 달리 담당자는 "언제 배정됐는지"가 알림·활동 로그에서 의미를 가지므로, Prisma의 암묵적 M:N 대신 명시적 조인 모델을 선택했습니다.
+
+```prisma
+model CardAssignee {
+  cardId     String
+  userId     String
+  assignedAt DateTime @default(now())
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([cardId, userId])
+}
+```
+
 **BoardSnapshot — 복원 가능한 JSON 스냅샷**
 
 ```json
@@ -271,7 +304,7 @@ model Label {
     {
       "id": "col_1", "title": "Todo", "position": 1,
       "cards": [
-        { "id": "card_1", "title": "...", "assigneeId": null, "labelIds": ["l1"] }
+        { "id": "card_1", "title": "...", "assigneeIds": [], "labelIds": ["l1"] }
       ]
     }
   ]
@@ -284,26 +317,34 @@ model Label {
 
 ### 인증
 
-| Method | Path                        | 설명              | 인증 필요 |
-| ------ | --------------------------- | ----------------- | --------- |
-| POST   | `/api/auth/register`        | 회원가입          | ✗         |
-| POST   | `/api/auth/login`           | 로그인            | ✗         |
-| POST   | `/api/auth/refresh`         | 토큰 갱신         | ✗ (쿠키)  |
-| POST   | `/api/auth/logout`          | 로그아웃          | ✓         |
-| GET    | `/api/auth/google`          | Google OAuth 시작 | ✗         |
-| GET    | `/api/auth/google/callback` | Google OAuth 콜백 | ✗         |
+| Method | Path                          | 설명                        | 인증 필요 |
+| ------ | ----------------------------- | --------------------------- | --------- |
+| POST   | `/api/auth/register`          | 회원가입                    | ✗         |
+| POST   | `/api/auth/login`             | 로그인                      | ✗         |
+| POST   | `/api/auth/refresh`           | 토큰 갱신                   | ✗ (쿠키)  |
+| POST   | `/api/auth/logout`            | 로그아웃                    | ✓         |
+| GET    | `/api/auth/google`            | Google OAuth 시작           | ✗         |
+| GET    | `/api/auth/google/callback`   | Google OAuth 콜백           | ✗         |
+| POST   | `/api/auth/forgot-password`   | 비밀번호 재설정 링크 발송   | ✗         |
+| POST   | `/api/auth/reset-password`    | 재설정 토큰으로 비밀번호 변경 | ✗         |
+| GET    | `/api/auth/me`                | 내 프로필 조회              | ✓         |
+| PATCH  | `/api/auth/me`                | 내 프로필(이름) 수정         | ✓         |
+| POST   | `/api/auth/me/change-password`| 로그인 상태에서 비밀번호 변경 | ✓         |
 
 ### 워크스페이스
 
-| Method | Path                                   | 설명                 |
-| ------ | --------------------------------------- | -------------------- |
-| GET    | `/api/workspaces`                       | 내 워크스페이스 목록 |
-| POST   | `/api/workspaces`                       | 워크스페이스 생성    |
-| GET    | `/api/workspaces/:id`                   | 상세 조회            |
-| PATCH  | `/api/workspaces/:id`                   | 수정                 |
-| DELETE | `/api/workspaces/:id`                   | 삭제                 |
-| POST   | `/api/workspaces/:id/invite`            | 초대 링크 생성       |
-| POST   | `/api/workspaces/invite/:token/accept`  | 초대 토큰으로 참가   |
+| Method | Path                                        | 설명                             |
+| ------ | -------------------------------------------- | -------------------------------- |
+| GET    | `/api/workspaces`                            | 내 워크스페이스 목록             |
+| POST   | `/api/workspaces`                            | 워크스페이스 생성                |
+| GET    | `/api/workspaces/:id`                        | 상세 조회                        |
+| PATCH  | `/api/workspaces/:id`                        | 이름 변경 (admin)                |
+| DELETE | `/api/workspaces/:id`                        | 삭제 (owner)                     |
+| DELETE | `/api/workspaces/:id/members/:userId`        | 멤버 제거 또는 본인 탈퇴 (owner는 이전 전까지 불가) |
+| PATCH  | `/api/workspaces/:id/members/:userId/role`   | 멤버 역할 변경 (admin)           |
+| POST   | `/api/workspaces/:id/transfer-ownership`     | 소유권 이전 (owner)              |
+| POST   | `/api/workspaces/:id/invite`                 | 초대 링크 생성                   |
+| POST   | `/api/workspaces/invite/:token/accept`       | 초대 토큰으로 참가               |
 
 ### 보드 / 칸반
 
@@ -319,9 +360,15 @@ model Label {
 | PATCH  | `/api/columns/:columnId/move`             | 컬럼 이동  |
 | DELETE | `/api/columns/:columnId`                  | 컬럼 삭제  |
 | POST   | `/api/columns/:columnId/cards`            | 카드 생성  |
-| PATCH  | `/api/cards/:cardId`                      | 카드 수정  |
+| PATCH  | `/api/cards/:cardId`                      | 카드 수정 (제목/설명/우선순위/마감일) |
 | PATCH  | `/api/cards/:cardId/move`                 | 카드 이동  |
 | DELETE | `/api/cards/:cardId`                      | 카드 삭제  |
+| POST   | `/api/cards/:cardId/assignees/:userId`    | 담당자 배정 (다중 가능) |
+| DELETE | `/api/cards/:cardId/assignees/:userId`    | 담당자 해제 |
+| POST   | `/api/cards/:cardId/checklist-items`      | 체크리스트 항목 추가 |
+| PATCH  | `/api/checklist-items/:itemId`            | 텍스트 수정 / 완료 토글 |
+| PATCH  | `/api/checklist-items/:itemId/move`       | 항목 순서 변경 |
+| DELETE | `/api/checklist-items/:itemId`            | 항목 삭제  |
 
 ### 활동 로그 / 알림
 
@@ -452,6 +499,14 @@ AWS_S3_BUCKET=your-bucket-name
 AWS_ACCESS_KEY_ID=your-access-key-id
 AWS_SECRET_ACCESS_KEY=your-secret-access-key
 
+# 메일 (비밀번호 재설정 링크 발송)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-gmail-app-password
+MAIL_FROM=your-email@gmail.com
+
 # 서버
 PORT=4000
 FRONTEND_URL=http://localhost:3000
@@ -551,6 +606,18 @@ const socket = io(WS_URL, { auth: { token: accessToken } });
 
 마우스 좌표를 픽셀 값으로 그대로 전송하면 보낸 사람과 받는 사람의 화면 크기·스크롤 위치가 다를 때 커서 위치가 어긋납니다. 보드 콘텐츠 영역의 `getBoundingClientRect()` 기준 백분율(0~1)로 정규화해서 전송하고, 수신 측에서는 동일한 비율을 자신의 컨테이너에 적용해 렌더링합니다 — 별도의 좌표 변환 로직 없이 CSS `%` 포지셔닝만으로 해결됩니다.
 
+### 8. 소켓 이벤트를 늘리지 않고 기존 `card:updated`에 편승
+
+체크리스트 항목을 추가할 때마다 새로운 `checklist:created` 류의 이벤트 타입을 만드는 대신, 체크리스트를 `Card` 조회 시 항상 포함되는 필드로 두고 기존 `card:updated` 브로드캐스트에 실어 보냈습니다. 댓글·첨부파일처럼 별도로 페이지네이션이 필요한 대량 데이터가 아니라 카드 하나당 소수의 항목만 존재하는 데이터이기 때문에, 클라이언트도 새 이벤트 핸들러를 추가하지 않고 기존 `card:updated` 캐시 패치 로직을 그대로 재사용합니다 — **이벤트 종류를 늘리는 것보다 페이로드에 포함시켜도 되는지를 먼저 판단**한 사례입니다.
+
+### 9. 필터 상태와 동일한 방식으로 뷰 상태도 URL에 저장
+
+칸반/리스트/캘린더 뷰 전환 상태를 컴포넌트 로컬 state가 아니라 검색 상태(`?q=&assignee=&due=&label=`)와 동일하게 `?view=` 쿼리 파라미터로 관리했습니다. 필터링된 카드 목록(`filteredColumns`)을 계산하는 로직을 뷰마다 새로 만들지 않고 그대로 재사용할 수 있고, 특정 뷰가 적용된 상태로 링크를 공유하거나 새로고침해도 유지됩니다.
+
+### 10. 다중 담당자 도입 시 하위 호환 대신 완전 교체(clean break) 선택
+
+`Card.assigneeId` 단일 필드를 다중 담당자로 확장할 때, 필드를 유지한 채 별도 배열을 추가하는 방식(하위 호환)과 필드 자체를 제거하고 조인 테이블로 교체하는 방식(breaking change) 중 후자를 택했습니다. 카드를 조회하는 코드 경로(생성·수정·보드 조회·체크리스트 갱신 등 4곳 이상)를 이번 작업으로 어차피 전부 손대야 했고, 실제 서비스 중인 데이터가 없는 시점이었기 때문에 두 시맨틱을 동시에 지원하는 비용이 더 컸습니다. 프로덕션 데이터가 있는 상태였다면 마이그레이션 기간 동안 필드를 병행 운영하는 전략을 택했을 것입니다.
+
 ---
 
 ## 트러블슈팅
@@ -619,6 +686,7 @@ team-flow/
 │   │   ├── comment/             ← 댓글 (+ 멘션 연동)
 │   │   ├── attachment/          ← S3 presigned 업로드/다운로드
 │   │   ├── label/                ← 라벨 (M:N)
+│   │   ├── checklist/            ← 카드 체크리스트 CRUD
 │   │   ├── snapshot/             ← 보드 스냅샷/복원
 │   │   ├── dashboard/            ← 집계/번다운 API
 │   │   ├── gateway/              ← Socket.IO (보드 동기화 + 커서)
@@ -632,13 +700,13 @@ team-flow/
 │   │   ├── api/                  ← axios 인스턴스 + 도메인별 API 함수
 │   │   ├── components/
 │   │   │   ├── activity/         ← CardActivityFeed
-│   │   │   ├── board/            ← BoardFilterBar, HistoryPanel, CursorOverlay 등
-│   │   │   ├── card/              ← CardDetailModal, CommentSection, AttachmentSection, LabelPicker
+│   │   │   ├── board/            ← BoardFilterBar, HistoryPanel, CursorOverlay, ListView, CalendarView 등
+│   │   │   ├── card/              ← CardDetailModal, CommentSection, AttachmentSection, LabelPicker, AssigneePicker, PriorityPicker, ChecklistSection
 │   │   │   ├── notification/     ← NotificationBell
-│   │   │   └── layout/
-│   │   ├── hooks/                ← useAuth, useKanban, useSocket, useDnd, useComments, useLabels, useSnapshots, useDashboard 등
+│   │   │   └── layout/           ← AppLayout, Header, Sidebar, UserMenu
+│   │   ├── hooks/                ← useAuth, useKanban, useChecklist, useSocket, useDnd, useComments, useLabels, useSnapshots, useDashboard, useMyRole 등
 │   │   ├── pages/
-│   │   │   ├── auth/ · board/ (BoardPage, BoardNewPage, BoardDashboardPage) · invite/ · workspace/
+│   │   │   ├── auth/ · account/ (AccountSettingsPage) · board/ (BoardPage, BoardNewPage, BoardDashboardPage) · invite/ · workspace/ (WorkspacePage, WorkspaceSettingsPage 등)
 │   │   ├── router/
 │   │   ├── store/                ← Zustand (auth, workspace)
 │   │   └── utils/

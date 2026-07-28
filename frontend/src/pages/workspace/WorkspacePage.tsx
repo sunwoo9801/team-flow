@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWorkspace, useCreateInvite } from '../../hooks/useWorkspace';
 import { useWorkspaceStore } from '../../store/workspace.store';
+import { useMyRole } from '../../hooks/useMyRole';
 
 const GRADIENTS = [
   ['from-blue-500', 'to-blue-600'],
@@ -28,6 +29,7 @@ function avatarColor(name: string) {
 
 /* ── 좌측 메타 패널 (3xl 전용) ── */
 function LeftMetaPanel({ ws }: { ws: NonNullable<ReturnType<typeof useWorkspace>['data']> }) {
+  const { isOwner, isAdmin } = useMyRole(ws.id);
   const [from, to] = gradient(ws.name);
   return (
     <aside
@@ -73,7 +75,7 @@ function LeftMetaPanel({ ws }: { ws: NonNullable<ReturnType<typeof useWorkspace>
               className="text-xs px-2.5 py-1 rounded-full font-semibold
                              bg-accent-100 text-accent-700"
             >
-              {ws.members.find(() => true)?.role === 'admin' ? '관리자' : '멤버'}
+              {isOwner ? '소유자' : isAdmin ? '관리자' : '멤버'}
             </span>
           </div>
         </div>
@@ -273,29 +275,54 @@ export default function WorkspacePage() {
             </div>
           </div>
 
-          <button
-            onClick={handleInvite}
-            disabled={inviting}
-            className="flex items-center gap-1.5 h-9 px-4 bg-accent-500 hover:bg-accent-600
-                       disabled:opacity-50 text-white text-sm font-semibold rounded-lg
-                       transition-colors duration-150 shrink-0"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => navigate(`/workspace/${workspaceId}/settings`)}
+              className="flex items-center gap-1.5 h-9 px-3 bg-white hover:bg-zinc-50
+                         border border-zinc-200 text-zinc-600 text-sm font-medium rounded-lg
+                         transition-colors duration-150"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0
-                       018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-              />
-            </svg>
-            <span className="hidden sm:inline">{inviting ? '생성 중...' : '멤버 초대'}</span>
-          </button>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <span className="hidden sm:inline">설정</span>
+            </button>
+
+            <button
+              onClick={handleInvite}
+              disabled={inviting}
+              className="flex items-center gap-1.5 h-9 px-4 bg-accent-500 hover:bg-accent-600
+                         disabled:opacity-50 text-white text-sm font-semibold rounded-lg
+                         transition-colors duration-150"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0
+                         018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                />
+              </svg>
+              <span className="hidden sm:inline">{inviting ? '생성 중...' : '멤버 초대'}</span>
+            </button>
+          </div>
         </div>
       </header>
 

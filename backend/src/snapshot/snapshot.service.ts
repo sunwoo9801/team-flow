@@ -33,7 +33,7 @@ export class SnapshotService {
           description: card.description,
           position: card.position,
           dueDate: card.dueDate ? card.dueDate.toISOString() : null,
-          assigneeId: card.assigneeId,
+          assigneeIds: card.assignees?.map(a => a.userId) ?? [],
           labelIds: card.labels?.map(l => l.id) ?? [],
         })),
       })),
@@ -81,9 +81,7 @@ export class SnapshotService {
     const data = snapshot.data as unknown as SnapshotData;
 
     const assigneeIds = [
-      ...new Set(
-        data.columns.flatMap(col => col.cards.map(c => c.assigneeId).filter((id): id is string => !!id)),
-      ),
+      ...new Set(data.columns.flatMap(col => col.cards.flatMap(c => c.assigneeIds))),
     ];
     const existingUsers = new Set(
       (
@@ -123,8 +121,7 @@ export class SnapshotService {
         });
 
         for (const card of col.cards) {
-          const assigneeId =
-            card.assigneeId && existingUsers.has(card.assigneeId) ? card.assigneeId : null;
+          const cardAssigneeIds = card.assigneeIds.filter(id => existingUsers.has(id));
           const labelIds = card.labelIds.filter(id => existingLabels.has(id));
           const dueDate = card.dueDate ? new Date(card.dueDate) : null;
 
@@ -135,7 +132,6 @@ export class SnapshotService {
               description: card.description,
               position: card.position,
               dueDate,
-              assigneeId,
               columnId: col.id,
               labels: { set: labelIds.map(id => ({ id })) },
             },
@@ -145,11 +141,21 @@ export class SnapshotService {
               description: card.description,
               position: card.position,
               dueDate,
-              assigneeId,
               columnId: col.id,
               labels: { connect: labelIds.map(id => ({ id })) },
             },
           });
+
+          await tx.cardAssignee.deleteMany({
+            where: { cardId: card.id, userId: { notIn: cardAssigneeIds } },
+          });
+          for (const assigneeId of cardAssigneeIds) {
+            await tx.cardAssignee.upsert({
+              where: { cardId_userId: { cardId: card.id, userId: assigneeId } },
+              create: { cardId: card.id, userId: assigneeId },
+              update: {},
+            });
+          }
         }
       }
     });

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Param,
@@ -13,6 +14,9 @@ import { InviteService } from './invite.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto';
+import { RenameWorkspaceDto } from './dto/rename-workspace.dto';
+import { ChangeRoleDto } from './dto/change-role.dto';
+import { TransferOwnershipDto } from './dto/transfer-ownership.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('workspaces')
@@ -43,6 +47,43 @@ export class WorkspaceController {
   @Delete(':id')
   remove(@Param('id') id: string, @CurrentUser('sub') userId: string) {
     return this.workspaceService.remove(id, userId);
+  }
+
+  @Patch(':id')
+  rename(
+    @Param('id') id: string,
+    @CurrentUser('sub') userId: string,
+    @Body() dto: RenameWorkspaceDto,
+  ) {
+    return this.workspaceService.rename(id, userId, dto.name);
+  }
+
+  @Delete(':id/members/:userId')
+  removeMember(
+    @Param('id') id: string,
+    @Param('userId') targetUserId: string,
+    @CurrentUser('sub') actorId: string,
+  ) {
+    return this.workspaceService.removeMember(id, actorId, targetUserId);
+  }
+
+  @Patch(':id/members/:userId/role')
+  changeRole(
+    @Param('id') id: string,
+    @Param('userId') targetUserId: string,
+    @CurrentUser('sub') actorId: string,
+    @Body() dto: ChangeRoleDto,
+  ) {
+    return this.workspaceService.changeRole(id, actorId, targetUserId, dto.role);
+  }
+
+  @Post(':id/transfer-ownership')
+  transferOwnership(
+    @Param('id') id: string,
+    @CurrentUser('sub') actorId: string,
+    @Body() dto: TransferOwnershipDto,
+  ) {
+    return this.workspaceService.transferOwnership(id, actorId, dto.newOwnerId);
   }
 
   // 초대 링크 생성

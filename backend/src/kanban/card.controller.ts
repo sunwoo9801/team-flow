@@ -54,4 +54,22 @@ export class CardController {
   remove(@CurrentUser('sub') userId: string, @Param('cardId') cardId: string) {
     return this.cardService.remove(userId, cardId);
   }
+
+  @Post('cards/:cardId/assignees/:userId')
+  attachAssignee(
+    @CurrentUser('sub') userId: string,
+    @Param('cardId') cardId: string,
+    @Param('userId') targetUserId: string,
+  ) {
+    return this.cardService.attachAssignee(userId, cardId, targetUserId);
+  }
+
+  @Delete('cards/:cardId/assignees/:userId')
+  detachAssignee(
+    @CurrentUser('sub') userId: string,
+    @Param('cardId') cardId: string,
+    @Param('userId') targetUserId: string,
+  ) {
+    return this.cardService.detachAssignee(userId, cardId, targetUserId);
+  }
 }

@@ -30,14 +30,16 @@ export class DashboardService {
       count: col.cards.length,
     }));
 
-    // ── 담당자별 카드 분포 ──
+    // ── 담당자별 카드 분포 (다중 담당자 — 카드 1개가 담당자 여러 명의 카운트에 각각 반영) ──
     const assigneeMap = new Map<string, { name: string; count: number }>();
     let unassignedCount = 0;
     for (const card of allCards) {
-      if (card.assignee) {
-        const entry = assigneeMap.get(card.assignee.id);
-        if (entry) entry.count += 1;
-        else assigneeMap.set(card.assignee.id, { name: card.assignee.name, count: 1 });
+      if (card.assignees.length > 0) {
+        for (const { user } of card.assignees) {
+          const entry = assigneeMap.get(user.id);
+          if (entry) entry.count += 1;
+          else assigneeMap.set(user.id, { name: user.name, count: 1 });
+        }
       } else {
         unassignedCount += 1;
       }
