@@ -76,23 +76,17 @@ function matchesDue(dueDate: string | null, filter: DueFilter): boolean {
   return true;
 }
 
-const COLUMN_COLORS = [
-  'bg-blue-400',
-  'bg-violet-400',
-  'bg-emerald-400',
-  'bg-amber-400',
-  'bg-rose-400',
-  'bg-cyan-400',
-  'bg-indigo-400',
-];
-const COLUMN_SOFT = [
-  'bg-blue-50',
-  'bg-violet-50',
-  'bg-emerald-50',
-  'bg-amber-50',
-  'bg-rose-50',
-  'bg-cyan-50',
-  'bg-indigo-50',
+// 컬럼 구분용 액센트 도트 색상 — 컬럼 배경 자체는 중립 톤으로 통일하고
+// 색은 작은 점 하나로만 표시한다 (여러 색 배경을 쓰는 트렐로식 대신
+// 리니어/지라에 가까운 절제된 톤)
+const COLUMN_DOT_COLORS = [
+  '#5e6ad2', // accent
+  '#26b5ce', // cyan
+  '#4cb782', // green
+  '#e2b203', // amber
+  '#f2555a', // red
+  '#9b59b6', // purple
+  '#67788a', // slate
 ];
 
 /* ── 보드 통계 (서브헤더용) ── */
@@ -104,8 +98,8 @@ function BoardStats({ columns }: { columns: Column[] }) {
   const assignedCards = columns.flatMap(c => c.cards).filter(c => c.assigneeId).length;
 
   const items = [
-    { label: '전체 카드', value: totalCards, color: 'text-zinc-700' },
-    { label: '담당자 배정', value: assignedCards, color: 'text-blue-600' },
+    { label: '전체 카드', value: totalCards, color: 'text-zinc-800' },
+    { label: '담당자 배정', value: assignedCards, color: 'text-accent-600' },
     ...(overdueCards > 0
       ? [
           {
@@ -119,11 +113,11 @@ function BoardStats({ columns }: { columns: Column[] }) {
   ];
 
   return (
-    <div className="flex items-center gap-5">
+    <div className="flex items-center gap-4">
       {items.map(({ label, value, color }) => (
         <div key={label} className="flex items-center gap-1.5">
-          <span className={`text-sm font-bold tabular-nums ${color}`}>{value}</span>
-          <span className="text-xs text-zinc-400">{label}</span>
+          <span className={`text-[13px] font-semibold tabular-nums ${color}`}>{value}</span>
+          <span className="text-[11px] text-zinc-400">{label}</span>
         </div>
       ))}
     </div>
@@ -161,13 +155,13 @@ function SortableCard({
       data-testid="board-card"
       data-card-name={card.title}
       className={`
-        group relative bg-white border rounded-xl p-3.5 select-none
+        group relative bg-white border rounded-lg p-3 select-none
         cursor-pointer
         transition-all duration-150
         ${
           isDragging
-            ? 'opacity-40 shadow-2xl scale-105'
-            : 'border-zinc-200 shadow-sm hover:shadow-md hover:border-zinc-300'
+            ? 'opacity-40 shadow-lg scale-[1.02] border-zinc-200'
+            : 'border-zinc-200 hover:border-zinc-300 hover:shadow-[0_1px_3px_rgba(0,0,0,0.06)]'
         }
       `}
     >
@@ -197,23 +191,23 @@ function SortableCard({
           {card.labels.map(label => (
             <span
               key={label.id}
-              className="h-1.5 w-6 rounded-full"
+              className="h-1 w-5 rounded-full"
               style={{ backgroundColor: label.color }}
               title={label.name}
             />
           ))}
         </div>
       )}
-      <p className="text-sm font-medium text-zinc-800 leading-snug pr-5">
+      <p className="text-[13px] font-medium text-zinc-800 leading-snug pr-5">
         {highlightMatch(card.title, searchQuery)}
       </p>
 
       {(card.assignee || card.dueDate) && (
-        <div className="flex items-center justify-between mt-3 gap-2">
+        <div className="flex items-center justify-between mt-2.5 gap-2">
           {card.dueDate && (
             <span
               className={`flex items-center gap-1 text-[11px] font-medium
-                              px-2 py-0.5 rounded-full
+                              px-1.5 py-0.5 rounded
                               ${overdue ? 'bg-red-50 text-red-600' : 'bg-zinc-100 text-zinc-500'}`}
             >
               <svg
@@ -234,7 +228,7 @@ function SortableCard({
           )}
           {card.assignee && (
             <div
-              className="ml-auto w-5 h-5 rounded-full bg-blue-500 flex items-center
+              className="ml-auto w-5 h-5 rounded-full bg-accent-500 flex items-center
                             justify-center text-white text-[9px] font-bold uppercase shrink-0"
               title={card.assignee.name}
             >
@@ -252,8 +246,7 @@ function SortableCard({
 */
 function SortableColumn({
   col,
-  colorClass,
-  softClass,
+  dotColor,
   onDeleteColumn,
   onDeleteCard,
   onCardClick,
@@ -266,8 +259,7 @@ function SortableColumn({
   searchQuery,
 }: {
   col: Column;
-  colorClass: string;
-  softClass: string;
+  dotColor: string;
   onDeleteColumn: () => void;
   onDeleteCard: (id: string) => void;
   onCardClick: (cardId: string) => void;
@@ -304,19 +296,14 @@ function SortableColumn({
       <div
         {...attributes}
         {...listeners}
-        className="flex items-center gap-2.5 mb-2.5 px-1 cursor-grab active:cursor-grabbing"
+        className="flex items-center gap-2 mb-2 px-1 cursor-grab active:cursor-grabbing"
       >
-        <div className={`w-2 h-2 rounded-full ${colorClass} shrink-0`} />
-        <h2 className="flex-1 text-sm font-semibold text-zinc-700 select-none truncate">
+        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: dotColor }} />
+        <h2 className="flex-1 text-[13px] font-semibold text-zinc-700 select-none truncate">
           {col.title}
         </h2>
         {/* 카드 수 배지 */}
-        <span
-          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full
-                          ${softClass} ${colorClass
-                            .replace('bg-', 'text-')
-                            .replace('-400', '-700')} tabular-nums`}
-        >
+        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 tabular-nums">
           {col.cards.length}
         </span>
         <button
@@ -342,8 +329,8 @@ function SortableColumn({
 
       {/* 카드 리스트 영역 */}
       <div
-        className={`flex flex-col flex-1 ${softClass} rounded-2xl p-2.5 gap-2
-                       overflow-y-auto min-h-[80px] border border-zinc-200/60 group/col`}
+        className="flex flex-col flex-1 bg-zinc-50 rounded-lg p-2 gap-1.5
+                       overflow-y-auto min-h-[80px] border border-zinc-200 group/col"
       >
         <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
           {col.cards.map(card => (
@@ -360,7 +347,7 @@ function SortableColumn({
 
         {/* 인라인 카드 추가 */}
         {addingCard && (
-          <div className="bg-white border border-zinc-200 rounded-xl p-3 shadow-sm">
+          <div className="bg-white border border-zinc-200 rounded-lg p-2.5">
             <textarea
               autoFocus
               rows={2}
@@ -374,15 +361,15 @@ function SortableColumn({
                 if (e.key === 'Escape') onCancelAddCard();
               }}
               placeholder="카드 이름 입력 후 Enter"
-              className="w-full text-sm text-zinc-900 placeholder:text-zinc-400 resize-none
+              className="w-full text-[13px] text-zinc-900 placeholder:text-zinc-400 resize-none
                          border-none focus:outline-none bg-transparent leading-relaxed"
             />
-            <div className="flex gap-2 mt-2.5">
+            <div className="flex gap-1.5 mt-2">
               <button
                 onPointerDown={e => e.stopPropagation()}
                 onClick={onAddCard}
-                className="flex-1 h-7 bg-blue-600 hover:bg-blue-700 text-white text-xs
-                           font-semibold rounded-lg transition-colors duration-150"
+                className="flex-1 h-7 bg-accent-500 hover:bg-accent-600 text-white text-xs
+                           font-medium rounded-md transition-colors duration-150"
               >
                 추가
               </button>
@@ -391,7 +378,7 @@ function SortableColumn({
                 onClick={onCancelAddCard}
                 className="h-7 px-3 text-xs font-medium text-zinc-500
                            hover:text-zinc-800 hover:bg-zinc-200
-                           rounded-lg transition-colors duration-150"
+                           rounded-md transition-colors duration-150"
               >
                 취소
               </button>
@@ -404,9 +391,9 @@ function SortableColumn({
           <button
             onPointerDown={e => e.stopPropagation()}
             onClick={onStartAddCard}
-            className="flex items-center gap-1.5 px-2 py-2 text-xs font-medium
+            className="flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium
                        text-zinc-500 hover:text-zinc-800 hover:bg-white
-                       rounded-xl transition-all duration-150 w-full"
+                       rounded-md transition-all duration-150 w-full"
           >
             <svg
               className="w-3.5 h-3.5"
@@ -428,17 +415,17 @@ function SortableColumn({
 /* ── Overlay ── */
 function CardOverlay({ card }: { card: Card }) {
   return (
-    <div className="w-[280px] bg-white border border-blue-300 rounded-xl p-3.5 shadow-2xl rotate-1">
-      <p className="text-sm font-medium text-zinc-800">{card.title}</p>
+    <div className="w-[280px] bg-white border border-accent-400 rounded-lg p-3 shadow-lg rotate-1">
+      <p className="text-[13px] font-medium text-zinc-800">{card.title}</p>
     </div>
   );
 }
-function ColumnOverlay({ col, colorClass }: { col: Column; colorClass: string }) {
+function ColumnOverlay({ col, dotColor }: { col: Column; dotColor: string }) {
   return (
-    <div className="w-[280px] bg-zinc-50/90 rounded-2xl p-3 shadow-2xl border border-blue-300">
+    <div className="w-[280px] bg-zinc-50/90 rounded-lg p-3 shadow-lg border border-accent-400">
       <div className="flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${colorClass}`} />
-        <span className="text-sm font-semibold text-zinc-700">{col.title}</span>
+        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: dotColor }} />
+        <span className="text-[13px] font-semibold text-zinc-700">{col.title}</span>
       </div>
     </div>
   );
@@ -692,8 +679,8 @@ export default function BoardPage() {
               {board.columns.map((col, idx) => (
                 <div key={col.id} className="flex items-center gap-1" title={col.title}>
                   <div
-                    className={`w-2 h-2 rounded-full
-                                   ${COLUMN_COLORS[idx % COLUMN_COLORS.length]}`}
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: COLUMN_DOT_COLORS[idx % COLUMN_DOT_COLORS.length] }}
                   />
                   <span className="text-[11px] text-zinc-500 max-w-[80px] truncate">
                     {col.title}
@@ -704,8 +691,8 @@ export default function BoardPage() {
 
             <Link
               to={`/workspace/${workspaceId}/board/${boardId}/dashboard`}
-              className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium text-zinc-600
-                         bg-white border border-zinc-200 rounded-lg hover:border-zinc-300
+              className="flex items-center gap-1.5 h-7 px-2.5 text-xs font-medium text-zinc-600
+                         bg-white border border-zinc-200 rounded-md hover:border-zinc-300
                          transition-colors duration-150"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -755,8 +742,7 @@ export default function BoardPage() {
                 <SortableColumn
                   key={col.id}
                   col={col}
-                  colorClass={COLUMN_COLORS[idx % COLUMN_COLORS.length]}
-                  softClass={COLUMN_SOFT[idx % COLUMN_SOFT.length]}
+                  dotColor={COLUMN_DOT_COLORS[idx % COLUMN_DOT_COLORS.length]}
                   onDeleteColumn={() => deleteColumn(col.id)}
                   onDeleteCard={id => deleteCard(id)}
                   onCardClick={handleCardClick}
@@ -776,7 +762,7 @@ export default function BoardPage() {
               {/* 컬럼 추가 */}
               <div className="w-[280px] xl:w-[296px] shrink-0">
                 {addingColumn ? (
-                  <div className="bg-zinc-100/80 rounded-2xl p-3 border border-zinc-200/60">
+                  <div className="bg-zinc-100/80 rounded-lg p-2.5 border border-zinc-200">
                     <input
                       autoFocus
                       value={newColTitle}
@@ -786,24 +772,24 @@ export default function BoardPage() {
                         if (e.key === 'Escape') setAddingColumn(false);
                       }}
                       placeholder="컬럼 이름 입력 후 Enter"
-                      className="w-full h-9 px-3 bg-white border border-zinc-300 rounded-xl
-                                 text-sm text-zinc-900 placeholder:text-zinc-400
-                                 focus:outline-none focus:ring-2 focus:ring-blue-500
-                                 focus:border-transparent mb-2.5"
+                      className="w-full h-8 px-2.5 bg-white border border-zinc-300 rounded-md
+                                 text-[13px] text-zinc-900 placeholder:text-zinc-400
+                                 focus:outline-none focus:ring-2 focus:ring-accent-100
+                                 focus:border-accent-400 mb-2"
                     />
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       <button
                         onClick={handleAddColumn}
-                        className="flex-1 h-8 bg-blue-600 hover:bg-blue-700 text-white
-                                   text-xs font-semibold rounded-xl transition-colors duration-150"
+                        className="flex-1 h-7 bg-accent-500 hover:bg-accent-600 text-white
+                                   text-xs font-medium rounded-md transition-colors duration-150"
                       >
                         추가
                       </button>
                       <button
                         onClick={() => setAddingColumn(false)}
-                        className="h-8 px-3 text-xs font-medium text-zinc-500
+                        className="h-7 px-3 text-xs font-medium text-zinc-500
                                    hover:text-zinc-800 hover:bg-zinc-200
-                                   rounded-xl transition-colors duration-150"
+                                   rounded-md transition-colors duration-150"
                       >
                         취소
                       </button>
@@ -812,10 +798,10 @@ export default function BoardPage() {
                 ) : (
                   <button
                     onClick={() => setAddingColumn(true)}
-                    className="w-full h-10 flex items-center justify-center gap-2
-                               rounded-2xl border-2 border-dashed border-zinc-300
-                               text-sm font-medium text-zinc-400
-                               hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/50
+                    className="w-full h-9 flex items-center justify-center gap-2
+                               rounded-lg border border-dashed border-zinc-300
+                               text-[13px] font-medium text-zinc-400
+                               hover:border-accent-400 hover:text-accent-600 hover:bg-accent-50/50
                                transition-all duration-150"
                   >
                     <svg
@@ -839,7 +825,7 @@ export default function BoardPage() {
             {activeColumn && (
               <ColumnOverlay
                 col={activeColumn}
-                colorClass={COLUMN_COLORS[activeColIdx % COLUMN_COLORS.length]}
+                dotColor={COLUMN_DOT_COLORS[activeColIdx % COLUMN_DOT_COLORS.length]}
               />
             )}
           </DragOverlay>

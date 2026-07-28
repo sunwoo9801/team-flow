@@ -62,7 +62,7 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
       onClick={handleConfirm}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
+        className="bg-white rounded-lg shadow-xl border border-zinc-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* 헤더: 제목 */}
@@ -77,10 +77,10 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
                 if (e.key === 'Enter') { e.preventDefault(); titleRef.current?.blur(); }
               }}
               rows={1}
-              className="w-full text-lg font-semibold text-zinc-900 resize-none bg-transparent
-                         border border-transparent rounded-lg px-2 py-1 leading-snug
-                         hover:border-zinc-200 focus:outline-none focus:border-blue-400
-                         focus:ring-2 focus:ring-blue-100 transition-colors"
+              className="w-full text-[15px] font-semibold text-zinc-900 resize-none bg-transparent
+                         border border-transparent rounded-md px-2 py-1 leading-snug
+                         hover:border-zinc-200 focus:outline-none focus:border-accent-400
+                         focus:ring-2 focus:ring-accent-100 transition-colors"
             />
           </div>
           <button
@@ -109,10 +109,10 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
                 onBlur={saveDescription}
                 rows={5}
                 placeholder="카드에 대한 설명을 입력하세요..."
-                className="w-full text-sm text-zinc-700 placeholder:text-zinc-300 resize-none
-                           bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 leading-relaxed
-                           hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-100
-                           focus:border-blue-400 transition-colors"
+                className="w-full text-[13px] text-zinc-700 placeholder:text-zinc-300 resize-none
+                           bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2.5 leading-relaxed
+                           hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-accent-100
+                           focus:border-accent-400 transition-colors"
               />
             </section>
 
@@ -159,19 +159,19 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
               {/* 현재 담당자 표시 */}
               {card.assignee && (
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center
+                  <div className="w-6 h-6 rounded-full bg-accent-500 flex items-center justify-center
                                   text-white text-[10px] font-bold uppercase">
                     {card.assignee.name[0]}
                   </div>
-                  <span className="text-sm text-zinc-700 truncate">{card.assignee.name}</span>
+                  <span className="text-[13px] text-zinc-700 truncate">{card.assignee.name}</span>
                 </div>
               )}
               <select
                 value={card.assigneeId ?? ''}
                 onChange={e => updateCard({ cardId: card.id, assigneeId: e.target.value || null })}
-                className="w-full text-sm text-zinc-600 bg-white border border-zinc-200 rounded-xl
-                           px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-100
-                           focus:border-blue-400 transition-colors cursor-pointer"
+                className="w-full text-[13px] text-zinc-600 bg-white border border-zinc-200 rounded-md
+                           px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-accent-100
+                           focus:border-accent-400 transition-colors cursor-pointer"
               >
                 <option value="">담당자 없음</option>
                 {members.map(m => (
@@ -189,8 +189,8 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
                 type="date"
                 value={card.dueDate ? card.dueDate.slice(0, 10) : ''}
                 onChange={e => updateCard({ cardId: card.id, dueDate: e.target.value || null })}
-                className={`w-full text-sm bg-white border rounded-xl px-3 py-2 cursor-pointer
-                            focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400
+                className={`w-full text-[13px] bg-white border rounded-md px-2.5 py-1.5 cursor-pointer
+                            focus:outline-none focus:ring-2 focus:ring-accent-100 focus:border-accent-400
                             transition-colors
                             ${overdue ? 'border-red-300 text-red-600' : 'border-zinc-200 text-zinc-700'}`}
               />
@@ -211,8 +211,8 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
         <div className="flex justify-end gap-2 px-6 py-3 border-t border-zinc-100 bg-zinc-50/50">
           <button
             onClick={handleConfirm}
-            className="h-8 px-5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold
-                       rounded-lg transition-colors duration-150"
+            className="h-8 px-4 bg-accent-500 hover:bg-accent-600 text-white text-[13px] font-medium
+                       rounded-md transition-colors duration-150"
           >
             확인
           </button>

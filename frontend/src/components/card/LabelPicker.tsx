@@ -68,15 +68,15 @@ export function LabelPicker({ boardId, cardId, cardLabels }: Props) {
 
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-full text-sm text-zinc-600 bg-white border border-zinc-200 rounded-xl
-                   px-3 py-2 hover:border-zinc-300 focus:outline-none focus:ring-2
-                   focus:ring-blue-100 focus:border-blue-400 transition-colors text-left"
+        className="w-full text-[13px] text-zinc-600 bg-white border border-zinc-200 rounded-md
+                   px-2.5 py-1.5 hover:border-zinc-300 focus:outline-none focus:ring-2
+                   focus:ring-accent-100 focus:border-accent-400 transition-colors text-left"
       >
         {open ? '라벨 선택 닫기' : '+ 라벨 선택'}
       </button>
 
       {open && (
-        <div className="mt-2 border border-zinc-200 rounded-xl p-2.5 space-y-2 bg-zinc-50/50">
+        <div className="mt-2 border border-zinc-200 rounded-md p-2.5 space-y-2 bg-zinc-50/50">
           <ul className="space-y-1 max-h-32 overflow-y-auto">
             {(allLabels ?? []).map(label => (
               <li key={label.id}>
@@ -92,7 +92,7 @@ export function LabelPicker({ boardId, cardId, cardLabels }: Props) {
                     {label.name}
                   </span>
                   {attachedIds.has(label.id) && (
-                    <svg className="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5 text-accent-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   )}
@@ -113,8 +113,8 @@ export function LabelPicker({ boardId, cardId, cardLabels }: Props) {
               onChange={e => setNewName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleCreate()}
               placeholder="새 라벨 이름"
-              className="w-full h-7 px-2 text-xs bg-white border border-zinc-200 rounded-lg
-                         focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+              className="w-full h-7 px-2 text-xs bg-white border border-zinc-200 rounded-md
+                         focus:outline-none focus:ring-2 focus:ring-accent-100 focus:border-accent-400"
             />
             <div className="flex flex-wrap gap-1.5">
               {LABEL_COLORS.map(color => (
@@ -132,8 +132,8 @@ export function LabelPicker({ boardId, cardId, cardLabels }: Props) {
             <button
               onClick={handleCreate}
               disabled={!newName.trim() || isCreating}
-              className="w-full h-6 text-[11px] font-semibold text-white bg-blue-600
-                         hover:bg-blue-700 disabled:bg-zinc-300 rounded-lg transition-colors"
+              className="w-full h-6 text-[11px] font-medium text-white bg-accent-500
+                         hover:bg-accent-600 disabled:bg-zinc-300 rounded-md transition-colors"
             >
               추가
             </button>

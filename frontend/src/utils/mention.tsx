@@ -18,7 +18,7 @@ export function renderMentionContent(content: string): ReactNode[] {
       nodes.push(content.slice(lastIndex, match.index));
     }
     nodes.push(
-      <span key={`mention-${key++}`} className="text-blue-600 font-medium">
+      <span key={`mention-${key++}`} className="text-accent-600 font-medium">
         @{match[1]}
       </span>
     );

@@ -34,15 +34,15 @@ function CommentItem({
 
   return (
     <li className={`flex gap-3 py-2.5 group ${isPending ? 'opacity-50' : ''}`}>
-      <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
+      <div className="flex-shrink-0 w-6 h-6 rounded-full bg-accent-100 flex items-center justify-center text-[10px] font-medium text-accent-700">
         {initials}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
-          <span className="text-sm font-medium text-zinc-800">{comment.user.name}</span>
-          <time className="text-xs text-zinc-400">{formatRelativeTime(comment.createdAt)}</time>
+          <span className="text-[13px] font-medium text-zinc-800">{comment.user.name}</span>
+          <time className="text-[11px] text-zinc-400">{formatRelativeTime(comment.createdAt)}</time>
         </div>
-        <p className="text-sm text-zinc-700 leading-relaxed whitespace-pre-wrap break-words mt-0.5">
+        <p className="text-[13px] text-zinc-700 leading-relaxed whitespace-pre-wrap break-words mt-0.5">
           {renderMentionContent(comment.content)}
         </p>
       </div>
@@ -153,23 +153,23 @@ export function CommentSection({ cardId, members }: Props) {
           }}
           rows={2}
           placeholder="댓글을 입력하세요... (@로 멘션)"
-          className="w-full text-sm text-zinc-700 placeholder:text-zinc-300 resize-none
-                     bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 leading-relaxed
-                     hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-100
-                     focus:border-blue-400 transition-colors"
+          className="w-full text-[13px] text-zinc-700 placeholder:text-zinc-300 resize-none
+                     bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2.5 leading-relaxed
+                     hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-accent-100
+                     focus:border-accent-400 transition-colors"
         />
 
         {showMentionMenu && filteredMembers.length > 0 && (
           <ul className="absolute z-10 left-2 bottom-full mb-1 w-56 bg-white border border-zinc-200
-                         rounded-xl shadow-lg py-1 max-h-48 overflow-y-auto">
+                         rounded-md shadow-lg py-1 max-h-48 overflow-y-auto">
             {filteredMembers.map(m => (
               <li key={m.userId}>
                 <button
                   onClick={() => selectMention(m)}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-zinc-700
-                             hover:bg-blue-50 transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-zinc-700
+                             hover:bg-accent-50 transition-colors"
                 >
-                  <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center
+                  <div className="w-5 h-5 rounded-full bg-accent-500 flex items-center justify-center
                                   text-white text-[9px] font-bold uppercase shrink-0">
                     {m.user.name[0]}
                   </div>
@@ -184,8 +184,8 @@ export function CommentSection({ cardId, members }: Props) {
           <button
             onClick={handleSubmit}
             disabled={!content.trim()}
-            className="h-7 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-200
-                       disabled:text-zinc-400 text-white text-xs font-semibold rounded-lg
+            className="h-7 px-3 bg-accent-500 hover:bg-accent-600 disabled:bg-zinc-200
+                       disabled:text-zinc-400 text-white text-xs font-medium rounded-md
                        transition-colors duration-150"
           >
             등록

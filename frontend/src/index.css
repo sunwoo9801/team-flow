@@ -2,9 +2,17 @@
 
 @import 'tailwindcss';
 
-/* ── 커스텀 브레이크포인트 ──────────────────────────────────── */
+/* ── 커스텀 브레이크포인트 & 브랜드 액센트 ──────────────────── */
 @theme {
   --breakpoint-3xl: 100rem; /* 1600px: 풀스크린 전용 레이아웃 */
+
+  /* 인디고/바이올렛 계열 단일 액센트 — 전문 협업 툴 톤 */
+  --color-accent-50: #eef0fd;
+  --color-accent-100: #dfe2fb;
+  --color-accent-400: #7d87dd;
+  --color-accent-500: #5e6ad2;
+  --color-accent-600: #4f5abf;
+  --color-accent-700: #414aa0;
 }
 
 /* ── 유동 그리드 유틸리티 ───────────────────────────────────── */
@@ -32,7 +40,7 @@
   --text-1: #18181b;
   --text-2: #52525b;
   --text-3: #a1a1aa;
-  --brand: #2563eb;
+  --brand: #5e6ad2;
 }
 
 @layer base {

@@ -19,7 +19,7 @@ function formatFileSize(bytes: number): string {
 function FileIcon({ mimeType }: { mimeType: string }) {
   const isImage = mimeType.startsWith('image/');
   return (
-    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-500">
+    <div className="flex-shrink-0 w-7 h-7 rounded-md bg-zinc-100 flex items-center justify-center text-zinc-500">
       {isImage ? (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -53,7 +53,7 @@ function AttachmentItem({
       <div className="flex-1 min-w-0">
         <button
           onClick={onDownload}
-          className="text-sm text-zinc-700 hover:text-blue-600 truncate block text-left w-full transition-colors"
+          className="text-[13px] text-zinc-700 hover:text-accent-600 truncate block text-left w-full transition-colors"
           title={attachment.fileName}
         >
           {attachment.fileName}
@@ -116,7 +116,7 @@ export function AttachmentSection({ cardId }: { cardId: string }) {
           onClick={() => fileInputRef.current?.click()}
           disabled={progress !== null}
           className="h-7 px-3 text-xs font-medium text-zinc-600 bg-zinc-100 hover:bg-zinc-200
-                     disabled:opacity-50 rounded-lg transition-colors duration-150"
+                     disabled:opacity-50 rounded-md transition-colors duration-150"
         >
           {progress !== null ? `업로드 중... ${progress}%` : '파일 추가'}
         </button>
