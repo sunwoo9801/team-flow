@@ -2,15 +2,20 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  BadRequestException,
   Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { randomBytes, createHash } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { MailerService } from '../mailer/mailer.service';
 import { AuthProvider } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+
+const RESET_TOKEN_EXPIRY_MS = 30 * 60 * 1000; // 30분
 
 export interface JwtPayload {
   sub: string;
@@ -33,6 +38,9 @@ export class AuthService {
 
     @Inject(ConfigService)
     private readonly config: ConfigService,
+
+    @Inject(MailerService)
+    private readonly mailer: MailerService,
   ) {
     console.log('AuthService prisma:', !!this.prisma);
   }
@@ -130,6 +138,56 @@ export class AuthService {
     });
     if (!user) throw new UnauthorizedException();
     return user;
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    // 이메일 존재 여부를 노출하지 않기 위해 계정이 없거나 로컬 비밀번호가 없어도 조용히 반환
+    if (!user || !user.password) return;
+
+    const rawToken = randomBytes(32).toString('hex');
+    const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+
+    // 재요청 시 이전 미사용 토큰은 무효화 (한 번에 하나만 유효)
+    await this.prisma.passwordResetToken.deleteMany({
+      where: { userId: user.id, usedAt: null },
+    });
+
+    await this.prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt: new Date(Date.now() + RESET_TOKEN_EXPIRY_MS),
+      },
+    });
+
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+    const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
+    await this.mailer.sendPasswordResetEmail(user.email, resetUrl);
+  }
+
+  async resetPassword(rawToken: string, newPassword: string): Promise<void> {
+    const tokenHash = createHash('sha256').update(rawToken).digest('hex');
+    const resetToken = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+    });
+
+    if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+      throw new BadRequestException('유효하지 않거나 만료된 링크입니다.');
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: resetToken.userId },
+        // 재설정 시 기존 세션(refresh token)도 함께 무효화
+        data: { password: hashed, refreshToken: null },
+      }),
+      this.prisma.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { usedAt: new Date() },
+      }),
+    ]);
   }
 
   private async generateTokens(

@@ -3,12 +3,16 @@ import ProtectedRoute from './ProtectedRoute';
 import AppLayout from '../components/layout/AppLayout';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage';
 import AuthCallbackPage from '../pages/auth/AuthCallbackPage';
 import InvitePage from '../pages/invite/InvitePage';
 
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   { path: '/auth/callback', element: <AuthCallbackPage /> },
   { path: '/invite/:token', element: <InvitePage /> },
   {

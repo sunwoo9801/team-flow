@@ -17,6 +17,8 @@ import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { CurrentUser } from './decorators/current-user.decorator';
 
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -104,6 +106,21 @@ export class AuthController {
       sameSite: COOKIE_OPTIONS.sameSite,
       secure: COOKIE_OPTIONS.secure,
     });
+  }
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(dto.email);
+    // 이메일 존재 여부와 무관하게 항상 동일한 응답 (계정 존재 여부 노출 방지)
+    return { message: '해당 이메일로 가입된 계정이 있다면 재설정 링크를 보내드렸습니다.' };
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.authService.resetPassword(dto.token, dto.newPassword);
+    return { message: '비밀번호가 재설정되었습니다.' };
   }
 
   @Get('me')

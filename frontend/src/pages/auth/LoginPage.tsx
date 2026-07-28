@@ -114,14 +114,24 @@ export default function LoginPage() {
               placeholder="you@example.com"
               autoComplete="email"
             />
-            <Field
-              label="비밀번호"
-              type="password"
-              value={form.password}
-              onChange={v => setForm(p => ({ ...p, password: v }))}
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
+            <div>
+              <Field
+                label="비밀번호"
+                type="password"
+                value={form.password}
+                onChange={v => setForm(p => ({ ...p, password: v }))}
+                placeholder="••••••••"
+                autoComplete="current-password"
+              />
+              <div className="mt-1.5 text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-zinc-500 hover:text-blue-600 transition-colors"
+                >
+                  비밀번호를 잊으셨나요?
+                </Link>
+              </div>
+            </div>
             <PrimaryButton loading={isLoginPending} className="mt-2">
               로그인
             </PrimaryButton>

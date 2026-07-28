@@ -65,6 +65,15 @@ export function useAuth() {
     },
   });
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: (email: string) => api.post('/auth/forgot-password', { email }),
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: (payload: { token: string; newPassword: string }) =>
+      api.post('/auth/reset-password', payload),
+  });
+
   return {
     user: meQuery.data ?? user,
     isLoading: meQuery.isLoading,
@@ -76,5 +85,11 @@ export function useAuth() {
     loginError: loginMutation.error,
     isRegisterPending: registerMutation.isPending,
     isLoginPending: loginMutation.isPending,
+    forgotPassword: forgotPasswordMutation.mutateAsync,
+    isForgotPasswordPending: forgotPasswordMutation.isPending,
+    forgotPasswordError: forgotPasswordMutation.error,
+    resetPassword: resetPasswordMutation.mutateAsync,
+    isResetPasswordPending: resetPasswordMutation.isPending,
+    resetPasswordError: resetPasswordMutation.error,
   };
 }
