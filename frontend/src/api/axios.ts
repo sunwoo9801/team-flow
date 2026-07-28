@@ -16,13 +16,19 @@ api.interceptors.request.use(config => {
 let isRefreshing = false;
 let queue: Array<(token: string) => void> = [];
 
+// 로그인/회원가입/리프레시 자체의 401은 "세션 만료"가 아니라 "자격증명이 틀림" 이므로
+// 자동 refresh-재시도 대상에서 제외한다 (안 그러면 에러 메시지가 뜨기 전에
+// refresh도 실패 → 강제로 /login 리다이렉트되어 에러가 사라져 보임)
+const AUTH_BOOTSTRAP_PATHS = ['/auth/login', '/auth/register', '/auth/refresh'];
+
 api.interceptors.response.use(
   res => res,
   async (error: import('axios').AxiosError) => {
     const original = error.config as import('axios').InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
-    if (error.response?.status === 401 && !original._retry) {
+    const isAuthBootstrap = AUTH_BOOTSTRAP_PATHS.some(path => original?.url?.includes(path));
+    if (error.response?.status === 401 && !original._retry && !isAuthBootstrap) {
       if (isRefreshing) {
         return new Promise(resolve => {
           queue.push(token => {
