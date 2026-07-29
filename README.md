@@ -2,6 +2,8 @@
 
 > 실시간 협업 칸반 보드 — NestJS + React 풀스택 SaaS 프로젝트
 
+**🔗 라이브 데모: [team-flow](https://frontend-eight-kappa-45.vercel.app)** (프론트엔드 Vercel · 백엔드 Railway, 아래 [배포](#배포) 참고)
+
 [![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)](https://nestjs.com)
 [![React](https://img.shields.io/badge/React-19.x-61DAFB?logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org)
@@ -23,6 +25,7 @@
 - [API 명세](#api-명세)
 - [WebSocket 이벤트](#websocket-이벤트)
 - [로컬 개발 환경 설정](#로컬-개발-환경-설정)
+- [배포](#배포)
 - [환경 변수](#환경-변수)
 - [테스트 & 품질](#테스트--품질)
 - [기술적 의사결정](#기술적-의사결정)
@@ -36,7 +39,7 @@
 
 Team Flow는 팀 단위 업무를 관리하는 협업 툴입니다. Linear/Jira에서 영감을 받아, 칸반·리스트·캘린더 세 가지 뷰로 같은 작업을 다르게 조회하고, 우선순위·체크리스트·다중 담당자로 카드를 세밀하게 관리하며, 워크스페이스 권한(소유자/관리자/멤버) 체계와 설정 화면까지 갖춘 실무형 프로젝트 관리 도구를 지향했습니다. 실시간 동기화·이벤트 소싱 기반 활동 로그·라이브 커서 공유·S3 파일 업로드처럼 난이도 있는 기능들도 백엔드(NestJS)와 프론트엔드(React) 양쪽 모두 직접 설계·구현했습니다.
 
-현재는 로컬 Docker 환경 기준으로 완성된 프로젝트이며, 배포 파이프라인은 아직 구성 전입니다 (아래 [로컬 개발 환경 설정](#로컬-개발-환경-설정) 참고). 대신 GitHub Actions 기반 E2E 테스트 CI가 매 push/PR마다 로그인 → 보드 생성 → 드래그 앤 드롭 플로우를 자동 검증합니다.
+**[team-flow](https://frontend-eight-kappa-45.vercel.app)에서 실제로 회원가입하고 사용해볼 수 있습니다** — 프론트엔드는 Vercel, 백엔드(NestJS + PostgreSQL)는 Railway에 각각 배포되어 있습니다 (자세한 배포 구성은 [배포](#배포) 섹션 참고). 로컬 개발 환경은 Docker Compose로 동일하게 재현 가능합니다 (아래 [로컬 개발 환경 설정](#로컬-개발-환경-설정) 참고). GitHub Actions 기반 E2E 테스트 CI도 매 push/PR마다 로그인 → 보드 생성 → 드래그 앤 드롭 플로우를 자동 검증합니다.
 
 ---
 
@@ -471,6 +474,25 @@ npm run test:e2e --workspace=e2e
 cd frontend
 npm run storybook        # http://localhost:6006
 ```
+
+---
+
+## 배포
+
+| 구성 요소 | 플랫폼 | 비고 |
+| --------- | ------ | ---- |
+| 프론트엔드 (React SPA) | [Vercel](https://vercel.com) | Vite 빌드 산출물 정적 호스팅, `frontend/vercel.json`으로 SPA 라우팅(`rewrites`) 처리 |
+| 백엔드 (NestJS API + WebSocket) | [Railway](https://railway.app) | `backend/Dockerfile` 기반 컨테이너 배포, 컨테이너 시작 시 `prisma migrate deploy` 자동 실행 |
+| 데이터베이스 | Railway PostgreSQL | 백엔드 서비스와 같은 프로젝트 내부 네트워크로 연결 (`DATABASE_URL` reference variable) |
+| 파일 저장소 | AWS S3 | presigned URL 방식 (로컬과 동일 버킷) |
+| 메일 발송 | Gmail SMTP | 비밀번호 재설정 링크 발송 (로컬과 동일 계정) |
+
+### 배포 구조상 특이점
+
+- **모노레포 + Dockerfile 빌드 컨텍스트**: npm workspaces 모노레포이므로 `backend/Dockerfile`은 저장소 루트를 빌드 컨텍스트로 사용합니다 (루트의 `package-lock.json`을 포함한 전체 워크스페이스 설치가 필요하기 때문). Railway에서 서비스의 Root Directory는 그대로 두고, 저장소 루트의 `railway.json`에 `dockerfilePath: "backend/Dockerfile"`만 지정해 이 구조를 그대로 반영했습니다.
+- **WebSocket 상시 연결이 필요해 서버리스가 아닌 컨테이너 플랫폼 선택**: Socket.IO로 보드 실시간 동기화·커서 공유를 구현했기 때문에, 요청마다 콜드 스타트되는 서버리스 함수(Vercel Functions 등)는 적합하지 않습니다. 백엔드는 항상 켜져 있는 컨테이너가 필요해 Railway를, 정적 파일만 서빙하면 되는 프론트엔드는 Vercel을 선택해 각 워크로드에 맞는 플랫폼을 분리했습니다.
+- **프로덕션 전용 시크릿**: JWT 서명 키는 로컬 개발용 값을 재사용하지 않고 프로덕션 배포 시점에 새로 생성해서 적용했습니다.
+- **CORS는 `FRONTEND_URL` 환경변수 하나로 제어**: `backend/src/main.ts`가 `NODE_ENV=production`일 때 `FRONTEND_URL` 값만 허용 origin으로 사용하므로, 프론트엔드 배포 도메인이 바뀌면 이 값 하나만 갱신하면 됩니다.
 
 ---
 
