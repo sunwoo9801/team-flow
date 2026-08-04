@@ -23,10 +23,13 @@ export default defineConfig({
   webServer: CI
     ? [
         {
-          command: 'npm run start:dev --workspace=backend',
+          // CI에서는 nest start --watch(SWC 감시 모드)의 자식 프로세스 stdio 전달이
+          // 불안정해 컴파일 후 부트스트랩 로그 없이 멈추는 경우가 있어, 감시 모드 대신
+          // 실제 빌드 후 실행(Dockerfile의 프로덕션 실행과 동일한 경로)으로 기동한다.
+          command: 'npm run build --workspace=backend && npm run start --workspace=backend',
           cwd: '../',
           url: BACKEND_URL,
-          timeout: 60_000,
+          timeout: 120_000,
           reuseExistingServer: false,
         },
         {
