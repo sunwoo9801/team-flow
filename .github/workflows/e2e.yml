@@ -58,10 +58,12 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma Client
-        run: npx prisma generate --schema=backend/prisma/schema.prisma
+        working-directory: backend
+        run: npx prisma generate
 
       - name: Run database migrations
-        run: npx prisma migrate deploy --schema=backend/prisma/schema.prisma
+        working-directory: backend
+        run: npx prisma migrate deploy
         env:
           DATABASE_URL: postgresql://teamflow:teamflow1234@localhost:5432/teamflow?schema=public
 
