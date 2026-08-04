@@ -42,6 +42,15 @@ jobs:
       AWS_S3_BUCKET: dummy-bucket
       AWS_ACCESS_KEY_ID: dummy
       AWS_SECRET_ACCESS_KEY: dummy
+      # 이 워크플로우는 비밀번호 재설정 이메일 발송 플로우도 호출하지 않는다. 아래 값은
+      # MailerService가 부팅 시 SMTP transporter를 생성할 때 필요한 자리 표시자일 뿐,
+      # 실제 SMTP 자격증명이 아니며 절대 실제 값을 넣지 않는다.
+      SMTP_HOST: smtp.example.com
+      SMTP_PORT: 587
+      SMTP_SECURE: false
+      SMTP_USER: dummy@example.com
+      SMTP_PASS: dummy
+      MAIL_FROM: dummy@example.com
       FRONTEND_URL: http://localhost:3000
       E2E_FRONTEND_URL: http://localhost:3000
       E2E_BACKEND_URL: http://localhost:4000/api
