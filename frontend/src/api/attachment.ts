@@ -35,7 +35,11 @@ export const attachmentApi = {
   ): Promise<Attachment> => {
     const { data: presign } = await api.post<PresignResponse>(
       `/cards/${cardId}/attachments/presign`,
-      { fileName: file.name, mimeType: file.type || 'application/octet-stream', fileSize: file.size }
+      {
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        fileSize: file.size,
+      }
     );
 
     // presigned URL은 S3로 직접 업로드 — 인증 인터셉터가 붙은 axios 인스턴스를 피하기 위해 별도 axios 사용

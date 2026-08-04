@@ -26,8 +26,10 @@ function ChecklistRow({
 }) {
   const [text, setText] = useState(item.text);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- resyncs local draft when another user edits the item in real time
-  useEffect(() => { setText(item.text); }, [item.text]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resyncs local draft when another user edits the item in real time
+    setText(item.text);
+  }, [item.text]);
 
   const save = () => {
     const trimmed = text.trim();

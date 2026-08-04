@@ -7,9 +7,7 @@ interface Props {
 }
 
 export function ListView({ columns, onCardClick }: Props) {
-  const rows = columns.flatMap(col =>
-    col.cards.map(card => ({ card, columnTitle: col.title }))
-  );
+  const rows = columns.flatMap(col => col.cards.map(card => ({ card, columnTitle: col.title })));
 
   if (rows.length === 0) {
     return (
@@ -47,7 +45,12 @@ export function ListView({ columns, onCardClick }: Props) {
           </thead>
           <tbody>
             {rows.map(({ card, columnTitle }) => (
-              <ListRow key={card.id} card={card} columnTitle={columnTitle} onClick={() => onCardClick(card.id)} />
+              <ListRow
+                key={card.id}
+                card={card}
+                columnTitle={columnTitle}
+                onClick={() => onCardClick(card.id)}
+              />
             ))}
           </tbody>
         </table>
@@ -103,8 +106,10 @@ function ListRow({
               </div>
             ))}
             {card.assignees.length > 3 && (
-              <div className="w-5 h-5 rounded-full border-2 border-white bg-zinc-300 flex items-center
-                              justify-center text-zinc-600 text-[8px] font-bold">
+              <div
+                className="w-5 h-5 rounded-full border-2 border-white bg-zinc-300 flex items-center
+                              justify-center text-zinc-600 text-[8px] font-bold"
+              >
                 +{card.assignees.length - 3}
               </div>
             )}

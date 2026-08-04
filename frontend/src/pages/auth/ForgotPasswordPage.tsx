@@ -48,7 +48,10 @@ export default function ForgotPasswordPage() {
               className="flex items-start gap-2.5 p-3.5 bg-accent-50 border border-accent-100
                           rounded-lg text-sm text-accent-700"
             >
-              <span>해당 이메일로 가입된 계정이 있다면 재설정 링크를 보내드렸습니다. 메일함을 확인해 주세요.</span>
+              <span>
+                해당 이메일로 가입된 계정이 있다면 재설정 링크를 보내드렸습니다. 메일함을 확인해
+                주세요.
+              </span>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -83,7 +86,10 @@ export default function ForgotPasswordPage() {
         </div>
 
         <p className="mt-5 text-center text-sm text-zinc-500">
-          <Link to="/login" className="text-accent-600 font-semibold hover:text-accent-700 transition-colors">
+          <Link
+            to="/login"
+            className="text-accent-600 font-semibold hover:text-accent-700 transition-colors"
+          >
             로그인으로 돌아가기
           </Link>
         </p>

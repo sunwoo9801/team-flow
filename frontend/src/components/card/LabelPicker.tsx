@@ -37,10 +37,7 @@ export function LabelPicker({ boardId, cardId, cardLabels }: Props) {
   const handleCreate = () => {
     const trimmed = newName.trim();
     if (!trimmed) return;
-    createLabel(
-      { name: trimmed, color: newColor },
-      { onSuccess: () => setNewName('') }
-    );
+    createLabel({ name: trimmed, color: newColor }, { onSuccess: () => setNewName('') });
   };
 
   return (
@@ -92,7 +89,13 @@ export function LabelPicker({ boardId, cardId, cardLabels }: Props) {
                     {label.name}
                   </span>
                   {attachedIds.has(label.id) && (
-                    <svg className="w-3.5 h-3.5 text-accent-600 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <svg
+                      className="w-3.5 h-3.5 text-accent-600 shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                   )}

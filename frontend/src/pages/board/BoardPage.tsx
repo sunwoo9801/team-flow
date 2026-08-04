@@ -177,7 +177,10 @@ function SortableCard({
       {/* 삭제 버튼 */}
       <button
         onPointerDown={e => e.stopPropagation()}
-        onClick={e => { e.stopPropagation(); onDelete(); }}
+        onClick={e => {
+          e.stopPropagation();
+          onDelete();
+        }}
         aria-label="카드 삭제"
         className="absolute top-2.5 right-2.5 w-5 h-5 flex items-center justify-center
                    rounded-md opacity-0 group-hover:opacity-100
@@ -549,7 +552,10 @@ export default function BoardPage() {
   };
 
   const hasActiveFilters =
-    !!searchQuery || selectedAssignees.length > 0 || dueFilter !== 'all' || selectedLabels.length > 0;
+    !!searchQuery ||
+    selectedAssignees.length > 0 ||
+    dueFilter !== 'all' ||
+    selectedLabels.length > 0;
 
   const clearFilters = () => {
     setSearchInput('');
@@ -745,8 +751,18 @@ export default function BoardPage() {
                          bg-white border border-zinc-200 rounded-md hover:border-zinc-300
                          transition-colors duration-150"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6m6 13V10M4 19h16M4 19V4" />
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 19V6m6 13V10M4 19h16M4 19V4"
+                />
               </svg>
               통계
             </Link>
@@ -790,115 +806,115 @@ export default function BoardPage() {
 
       {/* ── 칸반 스크롤 영역 ── */}
       {view === 'kanban' && (
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-            <div
-              ref={contentRef}
-              onMouseMove={handlePointerMove}
-              className="relative flex gap-4 p-6 h-full items-start"
-              style={{ minWidth: 'max-content' }}
-            >
-              <CursorOverlay cursors={Object.values(cursors)} />
-              {filteredColumns.map((col: Column, idx) => (
-                <SortableColumn
-                  key={col.id}
-                  col={col}
-                  dotColor={COLUMN_DOT_COLORS[idx % COLUMN_DOT_COLORS.length]}
-                  onDeleteColumn={() => deleteColumn(col.id)}
-                  onDeleteCard={id => deleteCard(id)}
-                  onCardClick={handleCardClick}
-                  addingCard={addingCardColId === col.id}
-                  newCardTitle={newCardTitle}
-                  onNewCardTitleChange={setNewCardTitle}
-                  onStartAddCard={() => setAddingCardColId(col.id)}
-                  onCancelAddCard={() => {
-                    setAddingCardColId(null);
-                    setNewCardTitle('');
-                  }}
-                  onAddCard={() => handleAddCard(col.id)}
-                  searchQuery={searchQuery}
-                />
-              ))}
+        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
+              <div
+                ref={contentRef}
+                onMouseMove={handlePointerMove}
+                className="relative flex gap-4 p-6 h-full items-start"
+                style={{ minWidth: 'max-content' }}
+              >
+                <CursorOverlay cursors={Object.values(cursors)} />
+                {filteredColumns.map((col: Column, idx) => (
+                  <SortableColumn
+                    key={col.id}
+                    col={col}
+                    dotColor={COLUMN_DOT_COLORS[idx % COLUMN_DOT_COLORS.length]}
+                    onDeleteColumn={() => deleteColumn(col.id)}
+                    onDeleteCard={id => deleteCard(id)}
+                    onCardClick={handleCardClick}
+                    addingCard={addingCardColId === col.id}
+                    newCardTitle={newCardTitle}
+                    onNewCardTitleChange={setNewCardTitle}
+                    onStartAddCard={() => setAddingCardColId(col.id)}
+                    onCancelAddCard={() => {
+                      setAddingCardColId(null);
+                      setNewCardTitle('');
+                    }}
+                    onAddCard={() => handleAddCard(col.id)}
+                    searchQuery={searchQuery}
+                  />
+                ))}
 
-              {/* 컬럼 추가 */}
-              <div className="w-[280px] xl:w-[296px] shrink-0">
-                {addingColumn ? (
-                  <div className="bg-zinc-100/80 rounded-lg p-2.5 border border-zinc-200">
-                    <input
-                      autoFocus
-                      value={newColTitle}
-                      onChange={e => setNewColTitle(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') handleAddColumn();
-                        if (e.key === 'Escape') setAddingColumn(false);
-                      }}
-                      placeholder="컬럼 이름 입력 후 Enter"
-                      className="w-full h-8 px-2.5 bg-white border border-zinc-300 rounded-md
+                {/* 컬럼 추가 */}
+                <div className="w-[280px] xl:w-[296px] shrink-0">
+                  {addingColumn ? (
+                    <div className="bg-zinc-100/80 rounded-lg p-2.5 border border-zinc-200">
+                      <input
+                        autoFocus
+                        value={newColTitle}
+                        onChange={e => setNewColTitle(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleAddColumn();
+                          if (e.key === 'Escape') setAddingColumn(false);
+                        }}
+                        placeholder="컬럼 이름 입력 후 Enter"
+                        className="w-full h-8 px-2.5 bg-white border border-zinc-300 rounded-md
                                  text-[13px] text-zinc-900 placeholder:text-zinc-400
                                  focus:outline-none focus:ring-2 focus:ring-accent-100
                                  focus:border-accent-400 mb-2"
-                    />
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={handleAddColumn}
-                        className="flex-1 h-7 bg-accent-500 hover:bg-accent-600 text-white
+                      />
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={handleAddColumn}
+                          className="flex-1 h-7 bg-accent-500 hover:bg-accent-600 text-white
                                    text-xs font-medium rounded-md transition-colors duration-150"
-                      >
-                        추가
-                      </button>
-                      <button
-                        onClick={() => setAddingColumn(false)}
-                        className="h-7 px-3 text-xs font-medium text-zinc-500
+                        >
+                          추가
+                        </button>
+                        <button
+                          onClick={() => setAddingColumn(false)}
+                          className="h-7 px-3 text-xs font-medium text-zinc-500
                                    hover:text-zinc-800 hover:bg-zinc-200
                                    rounded-md transition-colors duration-150"
-                      >
-                        취소
-                      </button>
+                        >
+                          취소
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setAddingColumn(true)}
-                    className="w-full h-9 flex items-center justify-center gap-2
+                  ) : (
+                    <button
+                      onClick={() => setAddingColumn(true)}
+                      className="w-full h-9 flex items-center justify-center gap-2
                                rounded-lg border border-dashed border-zinc-300
                                text-[13px] font-medium text-zinc-400
                                hover:border-accent-400 hover:text-accent-600 hover:bg-accent-50/50
                                transition-all duration-150"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    컬럼 추가
-                  </button>
-                )}
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      컬럼 추가
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          </SortableContext>
+            </SortableContext>
 
-          <DragOverlay dropAnimation={{ duration: 200, easing: 'ease-out' }}>
-            {activeCard && <CardOverlay card={activeCard} />}
-            {activeColumn && (
-              <ColumnOverlay
-                col={activeColumn}
-                dotColor={COLUMN_DOT_COLORS[activeColIdx % COLUMN_DOT_COLORS.length]}
-              />
-            )}
-          </DragOverlay>
-        </DndContext>
-      </div>
+            <DragOverlay dropAnimation={{ duration: 200, easing: 'ease-out' }}>
+              {activeCard && <CardOverlay card={activeCard} />}
+              {activeColumn && (
+                <ColumnOverlay
+                  col={activeColumn}
+                  dotColor={COLUMN_DOT_COLORS[activeColIdx % COLUMN_DOT_COLORS.length]}
+                />
+              )}
+            </DragOverlay>
+          </DndContext>
+        </div>
       )}
     </div>
   );

@@ -34,7 +34,10 @@ export function PriorityPicker({ value, onChange }: Props) {
                         transition-colors duration-150
                         ${active ? 'border-zinc-400 bg-zinc-100' : 'border-zinc-200 bg-white hover:border-zinc-300'}`}
           >
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: opt.color }} />
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: opt.color }}
+            />
             <span className="text-zinc-600">{opt.label}</span>
           </button>
         );

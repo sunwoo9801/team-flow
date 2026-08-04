@@ -25,10 +25,14 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
   const [description, setDescription] = useState(card.description ?? '');
   const titleRef = useRef<HTMLTextAreaElement>(null);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- resyncs local draft when another user edits the card in real time
-  useEffect(() => { setTitle(card.title); }, [card.title]);
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- resyncs local draft when another user edits the card in real time
-  useEffect(() => { setDescription(card.description ?? ''); }, [card.description]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resyncs local draft when another user edits the card in real time
+    setTitle(card.title);
+  }, [card.title]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resyncs local draft when another user edits the card in real time
+    setDescription(card.description ?? '');
+  }, [card.description]);
 
   const saveTitle = () => {
     const trimmed = title.trim();
@@ -39,7 +43,7 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
   const saveDescription = () => {
     const trimmed = description.trim();
     if (trimmed === (card.description ?? '')) return;
-    updateCard({ cardId: card.id, description: trimmed || null as unknown as string });
+    updateCard({ cardId: card.id, description: trimmed || (null as unknown as string) });
   };
 
   // 확인: 미저장 제목/설명 반영 후 닫기
@@ -50,10 +54,12 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
   };
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') handleConfirm(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleConfirm();
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title, description]);
 
   const members = workspace?.members ?? [];
@@ -77,7 +83,10 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
               onChange={e => setTitle(e.target.value)}
               onBlur={saveTitle}
               onKeyDown={e => {
-                if (e.key === 'Enter') { e.preventDefault(); titleRef.current?.blur(); }
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  titleRef.current?.blur();
+                }
               }}
               rows={1}
               className="w-full text-[15px] font-semibold text-zinc-900 resize-none bg-transparent
@@ -91,7 +100,13 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
             className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg
                        text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors mt-0.5"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -209,7 +224,6 @@ export function CardDetailModal({ card, boardId, workspaceId, onClose }: Props) 
                 </button>
               )}
             </section>
-
           </div>
         </div>
 

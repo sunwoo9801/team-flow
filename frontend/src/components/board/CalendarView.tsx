@@ -62,7 +62,13 @@ export function CalendarView({ cards, onCardClick }: Props) {
                          hover:bg-zinc-100 transition-colors duration-150"
               aria-label="이전 달"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
               </svg>
             </button>
@@ -72,12 +78,20 @@ export function CalendarView({ cards, onCardClick }: Props) {
                          hover:bg-zinc-100 transition-colors duration-150"
               aria-label="다음 달"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
               </svg>
             </button>
             <button
-              onClick={() => setCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
+              onClick={() =>
+                setCursor(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+              }
               className="ml-1 h-7 px-2.5 text-[11px] font-medium text-zinc-600 bg-white
                          border border-zinc-200 rounded-md hover:border-zinc-300 transition-colors duration-150"
             >

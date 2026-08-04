@@ -160,8 +160,10 @@ export function CommentSection({ cardId, members }: Props) {
         />
 
         {showMentionMenu && filteredMembers.length > 0 && (
-          <ul className="absolute z-10 left-2 bottom-full mb-1 w-56 bg-white border border-zinc-200
-                         rounded-md shadow-lg py-1 max-h-48 overflow-y-auto">
+          <ul
+            className="absolute z-10 left-2 bottom-full mb-1 w-56 bg-white border border-zinc-200
+                         rounded-md shadow-lg py-1 max-h-48 overflow-y-auto"
+          >
             {filteredMembers.map(m => (
               <li key={m.userId}>
                 <button
@@ -169,8 +171,10 @@ export function CommentSection({ cardId, members }: Props) {
                   className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-zinc-700
                              hover:bg-accent-50 transition-colors"
                 >
-                  <div className="w-5 h-5 rounded-full bg-accent-500 flex items-center justify-center
-                                  text-white text-[9px] font-bold uppercase shrink-0">
+                  <div
+                    className="w-5 h-5 rounded-full bg-accent-500 flex items-center justify-center
+                                  text-white text-[9px] font-bold uppercase shrink-0"
+                  >
                     {m.user.name[0]}
                   </div>
                   <span className="truncate">{m.user.name}</span>

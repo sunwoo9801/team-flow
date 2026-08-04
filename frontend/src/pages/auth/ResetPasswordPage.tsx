@@ -13,9 +13,8 @@ export default function ResetPasswordPage() {
   const [localError, setLocalError] = useState('');
   const [done, setDone] = useState(false);
 
-  const apiErrorMsg = (
-    resetPasswordError as { response?: { data?: { message?: string } } } | null
-  )?.response?.data?.message;
+  const apiErrorMsg = (resetPasswordError as { response?: { data?: { message?: string } } } | null)
+    ?.response?.data?.message;
   const errorMsg = localError || apiErrorMsg;
 
   const handleSubmit = async (e: FormEvent) => {
@@ -147,7 +146,10 @@ export default function ResetPasswordPage() {
         </div>
 
         <p className="mt-5 text-center text-sm text-zinc-500">
-          <Link to="/login" className="text-accent-600 font-semibold hover:text-accent-700 transition-colors">
+          <Link
+            to="/login"
+            className="text-accent-600 font-semibold hover:text-accent-700 transition-colors"
+          >
             로그인으로 돌아가기
           </Link>
         </p>

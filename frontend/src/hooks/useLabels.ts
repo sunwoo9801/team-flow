@@ -22,14 +22,8 @@ export function useCreateLabel(boardId: string) {
 export function useUpdateLabel(boardId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      labelId,
-      ...payload
-    }: {
-      labelId: string;
-      name?: string;
-      color?: string;
-    }) => labelApi.update(labelId, payload),
+    mutationFn: ({ labelId, ...payload }: { labelId: string; name?: string; color?: string }) =>
+      labelApi.update(labelId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['labels', boardId] });
       queryClient.invalidateQueries({ queryKey: ['boards', boardId] });

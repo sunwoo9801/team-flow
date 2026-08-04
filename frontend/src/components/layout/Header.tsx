@@ -4,7 +4,6 @@ import { useBoard } from '../../hooks/useBoard';
 import { NotificationBell } from '../notification/NotificationBell';
 import { UserMenu } from './UserMenu';
 
-
 interface HeaderProps {
   onMenuClick: () => void;
 }

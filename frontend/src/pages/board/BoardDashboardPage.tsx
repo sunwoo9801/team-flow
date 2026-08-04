@@ -128,7 +128,13 @@ export default function BoardDashboardPage() {
                   width={28}
                 />
                 <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
-                <Bar dataKey="count" name="카드 수" fill={SERIES_1} radius={[4, 4, 0, 0]} maxBarSize={24} />
+                <Bar
+                  dataKey="count"
+                  name="카드 수"
+                  fill={SERIES_1}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={24}
+                />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -152,7 +158,13 @@ export default function BoardDashboardPage() {
                   width={28}
                 />
                 <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(0,0,0,0.03)' }} />
-                <Bar dataKey="count" name="카드 수" fill={SERIES_1} radius={[4, 4, 0, 0]} maxBarSize={24} />
+                <Bar
+                  dataKey="count"
+                  name="카드 수"
+                  fill={SERIES_1}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={24}
+                />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>

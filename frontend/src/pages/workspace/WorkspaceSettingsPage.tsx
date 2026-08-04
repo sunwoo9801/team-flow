@@ -13,7 +13,14 @@ import { useMyRole } from '../../hooks/useMyRole';
 import { useAuthStore } from '../../store/auth.store';
 
 function avatarColor(name: string) {
-  const COLORS = ['bg-blue-500', 'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500'];
+  const COLORS = [
+    'bg-blue-500',
+    'bg-violet-500',
+    'bg-emerald-500',
+    'bg-amber-500',
+    'bg-rose-500',
+    'bg-cyan-500',
+  ];
   return COLORS[name.charCodeAt(0) % COLORS.length];
 }
 
@@ -42,7 +49,9 @@ export default function WorkspaceSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64 text-sm text-zinc-400">불러오는 중...</div>
+      <div className="flex items-center justify-center h-64 text-sm text-zinc-400">
+        불러오는 중...
+      </div>
     );
   }
   if (!ws) return null;
@@ -54,7 +63,8 @@ export default function WorkspaceSettingsPage() {
   };
 
   const handleDelete = () => {
-    if (!window.confirm(`정말 "${ws.name}" 워크스페이스를 삭제하시겠습니까? 되돌릴 수 없습니다.`)) return;
+    if (!window.confirm(`정말 "${ws.name}" 워크스페이스를 삭제하시겠습니까? 되돌릴 수 없습니다.`))
+      return;
     deleteWorkspace(workspaceId!);
   };
 
@@ -85,8 +95,13 @@ export default function WorkspaceSettingsPage() {
           className="flex items-center gap-1.5 text-sm font-medium text-zinc-500
                      hover:text-zinc-900 transition-colors duration-150 group"
         >
-          <svg className="w-4 h-4 transition-transform duration-150 group-hover:-translate-x-0.5"
-               fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 transition-transform duration-150 group-hover:-translate-x-0.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
           </svg>
           워크스페이스로 돌아가기
@@ -147,7 +162,8 @@ export default function WorkspaceSettingsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-zinc-900 truncate">
-                      {m.user.name} {isSelf && <span className="text-zinc-400 font-normal">(나)</span>}
+                      {m.user.name}{' '}
+                      {isSelf && <span className="text-zinc-400 font-normal">(나)</span>}
                     </p>
                     <p className="text-xs text-zinc-400 truncate">{m.user.email}</p>
                   </div>
@@ -159,7 +175,9 @@ export default function WorkspaceSettingsPage() {
                   ) : isAdmin ? (
                     <select
                       value={m.role}
-                      onChange={e => changeRole({ userId: m.userId, role: e.target.value as 'admin' | 'member' })}
+                      onChange={e =>
+                        changeRole({ userId: m.userId, role: e.target.value as 'admin' | 'member' })
+                      }
                       className="text-xs bg-white border border-zinc-200 rounded-md px-2 py-1
                                  focus:outline-none focus:ring-2 focus:ring-accent-100 shrink-0 cursor-pointer"
                     >
@@ -211,7 +229,9 @@ export default function WorkspaceSettingsPage() {
               >
                 <option value="">멤버 선택</option>
                 {otherMembers.map(m => (
-                  <option key={m.userId} value={m.userId}>{m.user.name}</option>
+                  <option key={m.userId} value={m.userId}>
+                    {m.user.name}
+                  </option>
                 ))}
               </select>
               <button

@@ -24,7 +24,10 @@ function InteractiveFilterBar() {
     list.includes(value) ? list.filter(v => v !== value) : [...list, value];
 
   const hasActiveFilters =
-    !!searchInput || selectedAssignees.length > 0 || selectedLabels.length > 0 || dueFilter !== 'all';
+    !!searchInput ||
+    selectedAssignees.length > 0 ||
+    selectedLabels.length > 0 ||
+    dueFilter !== 'all';
 
   return (
     <BoardFilterBar

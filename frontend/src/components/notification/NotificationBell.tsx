@@ -23,7 +23,8 @@ export function NotificationBell() {
   const navigate = useNavigate();
 
   const { data: unreadData } = useUnreadCount();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } = useNotifications();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } =
+    useNotifications();
   const { mutate: markAsRead } = useMarkAsRead();
   const { mutate: markAllAsRead } = useMarkAllAsRead();
 

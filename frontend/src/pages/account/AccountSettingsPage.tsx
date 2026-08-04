@@ -68,8 +68,13 @@ export default function AccountSettingsPage() {
           className="flex items-center gap-1.5 text-sm font-medium text-zinc-500
                      hover:text-zinc-900 transition-colors duration-150 group"
         >
-          <svg className="w-4 h-4 transition-transform duration-150 group-hover:-translate-x-0.5"
-               fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg
+            className="w-4 h-4 transition-transform duration-150 group-hover:-translate-x-0.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 18l-6-6 6-6" />
           </svg>
           뒤로
@@ -177,9 +182,7 @@ export default function AccountSettingsPage() {
               >
                 {isChangePasswordPending ? '변경 중...' : '비밀번호 변경'}
               </button>
-              <p className="text-xs text-zinc-400">
-                비밀번호를 변경하면 다시 로그인해야 합니다.
-              </p>
+              <p className="text-xs text-zinc-400">비밀번호를 변경하면 다시 로그인해야 합니다.</p>
             </form>
           </section>
         )}

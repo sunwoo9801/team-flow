@@ -1,14 +1,6 @@
 import type { RemoteCursor } from '../../hooks/useSocket';
 
-const CURSOR_COLORS = [
-  '#3b82f6',
-  '#a855f7',
-  '#22c55e',
-  '#f97316',
-  '#ec4899',
-  '#06b6d4',
-  '#eab308',
-];
+const CURSOR_COLORS = ['#3b82f6', '#a855f7', '#22c55e', '#f97316', '#ec4899', '#06b6d4', '#eab308'];
 
 function colorFor(userId: string) {
   const sum = userId.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
