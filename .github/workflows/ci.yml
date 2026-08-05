@@ -59,7 +59,11 @@ jobs:
 
       - name: Generate Prisma Client
         working-directory: backend
+        # prisma.config.ts가 로드 시점에 datasource.url을 위해 DATABASE_URL 존재를
+        # 요구한다 (generate는 실제로 DB에 연결하지 않으므로 값 자체는 무의미).
         run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/dummy
 
       - name: Run ESLint
         working-directory: backend
