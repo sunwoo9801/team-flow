@@ -76,11 +76,44 @@ jobs:
         env:
           DATABASE_URL: postgresql://teamflow:teamflow1234@localhost:5432/teamflow?schema=public
 
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
+
+      - name: Start backend (background)
+        working-directory: backend
+        run: |
+          nohup npm run start > /tmp/backend.log 2>&1 &
+          echo $! > /tmp/backend.pid
+
+      - name: Wait for backend to be healthy
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/api/auth/me || true)
+            # 401(인증 필요)이면 서버가 정상 응답 중이라는 뜻 — 000은 연결 자체가 안 된 상태
+            if [ "$code" != "000" ]; then
+              echo "backend is up (HTTP $code)"
+              exit 0
+            fi
+            if ! kill -0 "$(cat /tmp/backend.pid)" 2>/dev/null; then
+              echo "backend process exited early"
+              break
+            fi
+            sleep 2
+          done
+          echo "----- backend.log -----"
+          cat /tmp/backend.log
+          exit 1
+
       - name: Install Playwright browsers
         run: npx --prefix e2e playwright install --with-deps chromium
 
       - name: Run e2e tests
         run: npm run test:e2e
+
+      - name: Print backend log
+        if: always()
+        run: cat /tmp/backend.log || true
 
       - uses: actions/upload-artifact@v4
         if: failure()
